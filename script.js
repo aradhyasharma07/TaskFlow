@@ -302,31 +302,85 @@ function addTask() {
 
 
 /**
+ * getFilteredTasks()
+ * 
+ * Purpose: Search and filter tasks based on user input
+ * 
+ * Process:
+ * 1. Get the search text from searchInput
+ * 2. Convert search text to lowercase for case-insensitive search
+ * 3. Get the filter status from filterStatus dropdown
+ * 4. Use filter() to keep only tasks that match both search and status
+ * 5. Return the filtered list
+ * 
+ * Returns: Array of filtered tasks
+ */
+function getFilteredTasks() {
+    // Get the search text from the search input
+    const searchText = domElements.searchInput.value.toLowerCase();
+    
+    // Get the filter status value (all, pending, or completed)
+    const filterStatus = domElements.filterStatus.value;
+    
+    // Filter the tasks array based on search and status
+    const filteredTasks = tasks.filter((task) => {
+        // Convert task title to lowercase and check if it includes the search text
+        const matchesSearch = task.title.toLowerCase().includes(searchText);
+        
+        // Check if the task matches the selected filter status
+        let matchesStatus;
+        if (filterStatus === 'all') {
+            // Show all tasks
+            matchesStatus = true;
+        } else if (filterStatus === 'pending') {
+            // Show only pending tasks (completed is false)
+            matchesStatus = task.completed === false;
+        } else if (filterStatus === 'completed') {
+            // Show only completed tasks (completed is true)
+            matchesStatus = task.completed === true;
+        } else {
+            // Default to showing all
+            matchesStatus = true;
+        }
+        
+        // Return true only if both search and status match
+        return matchesSearch && matchesStatus;
+    });
+    
+    return filteredTasks;
+}
+
+
+/**
  * renderTasks()
  * 
  * Purpose: Render all tasks from the tasks array to the page
  * 
  * Process:
- * 1. Clear the task list container
- * 2. Loop through each task in the tasks array using forEach()
- * 3. Create a task card for each task
- * 4. Add the task card to the container
- * 5. Attach event listeners to edit buttons
+ * 1. Get filtered tasks using getFilteredTasks()
+ * 2. Clear the task list container
+ * 3. Loop through each filtered task
+ * 4. Create a task card for each task
+ * 5. Add the task card to the container
+ * 6. Attach event listeners to edit buttons
  * 
  * Returns: Nothing
  */
 function renderTasks() {
+    // Get the filtered list of tasks based on search and filter
+    const filteredTasks = getFilteredTasks();
+    
     // Clear the task list container to remove old tasks
     domElements.taskListContainer.innerHTML = '';
     
-    // Check if there are no tasks - show empty state
-    if (tasks.length === 0) {
+    // Check if there are no filtered tasks - show empty state
+    if (filteredTasks.length === 0) {
         showEmptyState();
         return;
     }
     
-    // Loop through each task in the tasks array
-    tasks.forEach((task) => {
+    // Loop through each filtered task in the array
+    filteredTasks.forEach((task) => {
         // Create HTML for this task card
         const taskCardHTML = createTaskCard(task);
         
@@ -337,7 +391,7 @@ function renderTasks() {
     // Attach event listeners to all Edit buttons after rendering
     attachEditButtonListeners();
     
-    console.log(`✓ Rendered ${tasks.length} task(s) on the page`);
+    console.log(`✓ Rendered ${filteredTasks.length} filtered task(s) on the page`);
 }
 
 
@@ -914,6 +968,25 @@ function handleFormSubmit(event) {
 }
 
 
+/**
+ * handleSearchAndFilter(event)
+ * 
+ * Purpose: Handle search and filter input changes
+ * 
+ * Process:
+ * 1. Render tasks with the new filter/search
+ * 
+ * Parameters:
+ * - event (Event): The input or change event from search or filter
+ * 
+ * Returns: Nothing
+ */
+function handleSearchAndFilter(event) {
+    // Re-render the tasks with the new search/filter
+    renderTasks();
+}
+
+
 // ===== EVENT BINDING =====
 
 /**
@@ -924,12 +997,20 @@ function handleFormSubmit(event) {
  * 
  * Current Events:
  * - Task form submission
+ * - Search input
+ * - Filter status dropdown
  * 
  * Returns: Nothing
  */
 function bindEvents() {
     // Bind the Add Task form submit event
     domElements.taskForm.addEventListener('submit', handleFormSubmit);
+    
+    // Bind the search input event (fires as user types)
+    domElements.searchInput.addEventListener('input', handleSearchAndFilter);
+    
+    // Bind the filter status change event (fires when dropdown changes)
+    domElements.filterStatus.addEventListener('change', handleSearchAndFilter);
     
     console.log('✓ Events Bound Successfully');
 }
