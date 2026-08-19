@@ -376,6 +376,18 @@ function createTaskCard(task) {
     // Create priority badge with appropriate color class
     const priorityClass = `priority-${task.priority}`;
     
+    // Create a button or badge based on completion status
+    let statusButton = '';
+    if (task.completed) {
+        // Show a green completed badge for completed tasks
+        statusButton = `<span class="task-status ${statusClass}" style="padding: 6px 12px; border-radius: 4px; background-color: #4caf50; color: white;">✓ Completed</span>`;
+    } else {
+        // Show a complete button for pending tasks
+        statusButton = `<button class="btn-complete" data-task-id="${task.id}" aria-label="Mark task as complete">
+            ✓ Complete
+        </button>`;
+    }
+    
     // Return HTML template string for the task card
     const taskCardHTML = `
         <div class="task-card" data-task-id="${task.id}">
@@ -408,6 +420,10 @@ function createTaskCard(task) {
                 <span class="task-created">
                     🕐 Created: ${createdDate}
                 </span>
+            </div>
+            
+            <div class="task-complete-section">
+                ${statusButton}
             </div>
         </div>
     `;
@@ -679,14 +695,13 @@ function resetForm() {
 /**
  * attachEditButtonListeners()
  * 
- * Purpose: Attach click event listeners to all Edit and Delete buttons on the page
+ * Purpose: Attach click event listeners to all Edit, Delete, and Complete buttons on the page
  * This is called after rendering tasks to bind events to dynamically created elements
  * 
  * Process:
- * 1. Select all Edit buttons using querySelectorAll()
- * 2. Loop through each button using forEach() and call editTask()
- * 3. Select all Delete buttons using querySelectorAll()
- * 4. Loop through each button using forEach() and call deleteTask()
+ * 1. Select all Edit buttons and add listeners
+ * 2. Select all Delete buttons and add listeners
+ * 3. Select all Complete buttons and add listeners
  * 
  * Returns: Nothing
  */
@@ -725,7 +740,24 @@ function attachEditButtonListeners() {
         });
     });
     
-    console.log(`✓ Attached listeners to ${editButtons.length} edit button(s) and ${deleteButtons.length} delete button(s)`);
+    // Select all Complete buttons on the page
+    const completeButtons = document.querySelectorAll('.btn-complete');
+    
+    // Add click event listener to each Complete button
+    completeButtons.forEach((button) => {
+        button.addEventListener('click', (event) => {
+            // Prevent any default button behavior
+            event.preventDefault();
+            
+            // Get the task ID from the button's data attribute
+            const taskId = parseInt(button.getAttribute('data-task-id'));
+            
+            // Call completeTask with the task ID
+            completeTask(taskId);
+        });
+    });
+    
+    console.log(`✓ Attached listeners to ${editButtons.length} edit button(s), ${deleteButtons.length} delete button(s), and ${completeButtons.length} complete button(s)`);
 }
 
 
@@ -777,6 +809,74 @@ function deleteTask(id) {
     })
     .catch(error => {
         console.error(`❌ Error deleting task with ID ${id}:`, error);
+    });
+}
+
+
+// ===== COMPLETE TASK FUNCTION =====
+
+/**
+ * completeTask(id)
+ * 
+ * Purpose: Mark a task as complete using the PUT API
+ * 
+ * Process:
+ * 1. Find the task from the tasks array
+ * 2. Send PUT request to /api/tasks/:id with completed: true
+ * 3. Keep all other task values the same
+ * 4. If successful: update array, render, update stats
+ * 5. If error: show message in console
+ * 
+ * Parameters:
+ * - id (Number): The ID of the task to mark as complete
+ * 
+ * Returns: Nothing
+ */
+function completeTask(id) {
+    // Find the task from the tasks array
+    const task = tasks.find((t) => t.id === id);
+    
+    // If task not found, stop execution
+    if (!task) {
+        console.error(`❌ Task with ID ${id} not found`);
+        return;
+    }
+    
+    // Create an object with all task data but set completed to true
+    const updatedTaskData = {
+        title: task.title,
+        description: task.description,
+        priority: task.priority,
+        dueDate: task.dueDate,
+        completed: true
+    };
+    
+    // Send PUT request to mark the task as complete
+    fetch(`/api/tasks/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(updatedTaskData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Find and replace the task in the array with the updated one from backend
+        const taskIndex = tasks.findIndex((t) => t.id === id);
+        if (taskIndex !== -1) {
+            tasks[taskIndex] = data;
+        }
+        
+        console.log(`✓ Task with ID ${id} marked as complete`);
+        
+        // Render all tasks on the page to show updated status
+        renderTasks();
+        
+        // Update the statistics cards
+        updateStatistics();
+    })
+    .catch(error => {
+        console.error(`❌ Error completing task with ID ${id}:`, error);
     });
 }
 
