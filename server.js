@@ -75,6 +75,38 @@ app.delete("/api/tasks/:id", (req, res) => {
     res.json({ message: "Task deleted successfully" });
 });
 
+// PUT - Update a task by ID
+app.put("/api/tasks/:id", (req, res) => {
+    
+    // Read all tasks from the file
+    let tasks = readTasks();
+    
+    // Convert the ID from the URL to a number
+    const taskId = Number(req.params.id);
+    
+    // Find the task with matching ID
+    const task = tasks.find((t) => t.id === taskId);
+    
+    // If task not found, return 404 error
+    if (!task) {
+        return res.status(404).json({ error: "Task not found" });
+    }
+    
+    // Update only the editable fields
+    // Keep the original id and createdAt
+    task.title = req.body.title;
+    task.description = req.body.description;
+    task.priority = req.body.priority;
+    task.dueDate = req.body.dueDate;
+    task.completed = req.body.completed;
+    
+    // Save the updated tasks array back to the file
+    saveTasks(tasks);
+    
+    // Return the updated task
+    res.json(task);
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);

@@ -575,23 +575,14 @@ function populateForm(task) {
 /**
  * updateTask(id)
  * 
- * Purpose: Update an existing task's properties
+ * Purpose: Update an existing task on the backend
  * 
  * Process:
- * 1. Find the task by ID
+ * 1. Get the new values from the form
  * 2. Validate the new title
- * 3. Update only the editable fields:
- *    - title
- *    - description
- *    - priority
- *    - dueDate
- * 4. Preserve the original:
- *    - id
- *    - createdAt
- *    - completed
- * 5. Re-render tasks
- * 6. Update statistics
- * 7. Exit edit mode
+ * 3. Send PUT request to /api/tasks/:id with updated data
+ * 4. If successful: update array, render, update stats, reset form
+ * 5. If error: show error message
  * 
  * Parameters:
  * - id (Number): The ID of the task to update
@@ -599,15 +590,6 @@ function populateForm(task) {
  * Returns: Nothing
  */
 function updateTask(id) {
-    // Find the task to update
-    const task = getTaskById(id);
-    
-    // If task not found, stop execution
-    if (!task) {
-        console.error(`❌ Task with ID ${id} not found`);
-        return;
-    }
-    
     // Get the new values from the form
     const newTitle = domElements.taskTitle.value;
     const newDescription = domElements.taskDescription.value;
@@ -619,24 +601,46 @@ function updateTask(id) {
         return; // Stop if validation fails
     }
     
-    // Update only the editable properties
-    // Preserve id, createdAt, and completed status
-    task.title = newTitle.trim();
-    task.description = newDescription.trim();
-    task.priority = newPriority;
-    task.dueDate = newDueDate;
+    // Create an object with the data to send to the backend
+    const updatedTaskData = {
+        title: newTitle.trim(),
+        description: newDescription.trim(),
+        priority: newPriority,
+        dueDate: newDueDate,
+        completed: false
+    };
     
-    console.log(`✓ Task with ID ${id} updated successfully`);
-    console.log(task);
-    
-    // Re-render the task list with updated data
-    renderTasks();
-    
-    // Update statistics
-    updateStatistics();
-    
-    // Exit edit mode and reset the form
-    resetForm();
+    // Send PUT request to update the task on the backend
+    fetch(`/api/tasks/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(updatedTaskData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Find and replace the task in the array with the updated one from backend
+        const taskIndex = tasks.findIndex((task) => task.id === id);
+        if (taskIndex !== -1) {
+            tasks[taskIndex] = data;
+        }
+        
+        console.log(`✓ Task with ID ${id} updated successfully`);
+        
+        // Re-render the task list with updated data
+        renderTasks();
+        
+        // Update statistics
+        updateStatistics();
+        
+        // Exit edit mode and reset the form
+        resetForm();
+    })
+    .catch(error => {
+        console.error(`❌ Error updating task with ID ${id}:`, error);
+        showFormError("Failed to update task. Please try again.");
+    });
 }
 
 
