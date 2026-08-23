@@ -29,7 +29,12 @@ app.get("/api/tasks", (req, res) => {
 
 // POST - Add a new task
 app.post("/api/tasks", (req, res) => {
-
+    // Check if task title is empty
+if (!req.body.title || req.body.title.trim() === "") {
+    return res.status(400).json({
+        error: "Task title is required"
+    });
+}
     let tasks = readTasks();
 
     let newTask = {
