@@ -1,118 +1,92 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
+// ==============================================================================
+// TaskFlow - Backend Express Server (Upgraded for CHO FA2 Evaluation)
+// Student Task Management System
+// 
+// Topics Demonstrated:
+// - Lecture 36: Environment variables (dotenv) & npm scripts
+// - Lecture 37: Express server setup, routes, and req/res lifecycle
+// - Lecture 38: Middleware, body parsing, input validation, centralized error handling
+// - Lecture 39: REST API principles, CRUD operations, JWT auth & bcrypt password hashing
+// - Lecture 40: Protected routes & Multer file uploads
+// - Lecture 41: MongoDB / Mongoose connection with dual-mode JSON fallback
+// ==============================================================================
 
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const { connectDB, getDatabaseStatus } = require('./config/db');
+const { errorHandler } = require('./middleware/errorHandler');
+
+// Route Handlers
+const taskRoutes = require('./routes/taskRoutes');
+const authRoutes = require('./routes/authRoutes');
+const tipRoutes = require('./routes/tipRoutes');
+
+// Initialize Express Application
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-const filePath = path.join(__dirname, "data", "tasks.json");
+// Connect to MongoDB with graceful JSON fallback
+connectDB();
 
-// Middleware
+// ===== BUILT-IN & THIRD-PARTY MIDDLEWARE =====
+
+// 1. CORS Middleware (allows React Vite frontend on port 5173 to access API)
+app.use(cors());
+
+// 2. Body Parser Middleware for JSON payloads (Lecture 38)
 app.use(express.json());
+
+// 3. Body Parser Middleware for URL-encoded form submissions
+app.use(express.urlencoded({ extended: true }));
+
+// 4. Static File Middleware: Serves vanilla HTML/CSS/JS frontend from root
 app.use(express.static(__dirname));
 
-// Read tasks from JSON file
-function readTasks() {
-    const data = fs.readFileSync(filePath, "utf8");
-    return JSON.parse(data);
-}
+// 5. Static File Middleware: Serves uploaded task attachments
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Save tasks into JSON file
-function saveTasks(tasks) {
-    fs.writeFileSync(filePath, JSON.stringify(tasks, null, 2));
-}
 
-// GET - Fetch all tasks
-app.get("/api/tasks", (req, res) => {
-    res.json(readTasks());
-});
-
-// POST - Add a new task
-app.post("/api/tasks", (req, res) => {
-    // Check if task title is empty
-if (!req.body.title || req.body.title.trim() === "") {
-    return res.status(400).json({
-        error: "Task title is required"
+// ===== SYSTEM HEALTH & STATUS ROUTE =====
+app.get('/api/status', (req, res) => {
+    const dbStatus = getDatabaseStatus();
+    res.json({
+        success: true,
+        project: "TaskFlow - Student Task Management System",
+        evaluation: "CHO FA2 Evaluation Ready",
+        server: "Node.js & Express 5",
+        uptimeSeconds: Math.floor(process.uptime()),
+        database: dbStatus
     });
-}
-    let tasks = readTasks();
-
-    let newTask = {
-        id: Date.now(),
-        title: req.body.title,
-        description: req.body.description,
-        priority: req.body.priority,
-        dueDate: req.body.dueDate,
-        completed: false
-    };
-
-    tasks.push(newTask);
-    saveTasks(tasks);
-
-    res.status(201).json(newTask);
 });
 
-// DELETE - Remove a task by ID
-app.delete("/api/tasks/:id", (req, res) => {
-    
-    // Read all tasks from the file
-    let tasks = readTasks();
-    
-    // Convert the ID from the URL to a number
-    const taskId = Number(req.params.id);
-    
-    // Store the original count to check if task was found
-    const originalCount = tasks.length;
-    
-    // Filter out the task with matching ID (keep all tasks that don't match)
-    tasks = tasks.filter((task) => task.id !== taskId);
-    
-    // Check if a task was actually removed
-    if (tasks.length === originalCount) {
-        // No task was removed, ID not found
-        return res.status(404).json({ error: "Task not found" });
-    }
-    
-    // Save the updated tasks array back to the file
-    saveTasks(tasks);
-    
-    // Return success message
-    res.json({ message: "Task deleted successfully" });
+
+// ===== API ROUTES =====
+// Lecture 39-40: Authentication endpoints (/api/auth/register, /api/auth/login, /api/auth/me)
+app.use('/api/auth', authRoutes);
+
+// Lectures 37-41: Task CRUD & upload endpoints (/api/tasks, /api/tasks/:id, /api/tasks/:id/upload)
+app.use('/api/tasks', taskRoutes);
+
+// Lecture 29: Study tips endpoints (/api/tips/daily)
+app.use('/api/tips', tipRoutes);
+
+
+// ===== CENTRALIZED ERROR-HANDLING MIDDLEWARE (Lecture 38) =====
+app.use(errorHandler);
+
+
+// ===== SERVER INITIALIZATION =====
+const server = app.listen(PORT, () => {
+    console.log(`\n==================================================`);
+    console.log(`🚀 TaskFlow Server running at: http://localhost:${PORT}`);
+    console.log(`📚 Static Frontend:           http://localhost:${PORT}/index.html`);
+    console.log(`🔬 CHO Topics Demo Page:       http://localhost:${PORT}/demo-advanced-js.html`);
+    console.log(`📋 API Tasks Endpoint:         http://localhost:${PORT}/api/tasks`);
+    console.log(`💡 API Study Tips Endpoint:    http://localhost:${PORT}/api/tips/daily`);
+    console.log(`📊 System Status:              http://localhost:${PORT}/api/status`);
+    console.log(`==================================================\n`);
 });
 
-// PUT - Update a task by ID
-app.put("/api/tasks/:id", (req, res) => {
-    
-    // Read all tasks from the file
-    let tasks = readTasks();
-    
-    // Convert the ID from the URL to a number
-    const taskId = Number(req.params.id);
-    
-    // Find the task with matching ID
-    const task = tasks.find((t) => t.id === taskId);
-    
-    // If task not found, return 404 error
-    if (!task) {
-        return res.status(404).json({ error: "Task not found" });
-    }
-    
-    // Update only the editable fields
-    // Keep the original id and createdAt
-    task.title = req.body.title;
-    task.description = req.body.description;
-    task.priority = req.body.priority;
-    task.dueDate = req.body.dueDate;
-    task.completed = req.body.completed;
-    
-    // Save the updated tasks array back to the file
-    saveTasks(tasks);
-    
-    // Return the updated task
-    res.json(task);
-});
-
-// Start server
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-});
+module.exports = app;

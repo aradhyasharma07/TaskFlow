@@ -1,16 +1,41 @@
 {
   "name": "taskflow",
   "version": "1.0.0",
-  "description": "",
-  "main": "script.js",
-"scripts": {
-  "start": "node server.js"
-},
-  "keywords": [],
-  "author": "",
+  "description": "TaskFlow - Student Task Management System (CHO FA2 Evaluation)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "demo:all": "node node-demos/01_event_loop.js && node node-demos/02_buffers_streams.js && node node-demos/03_event_emitter.js && node node-demos/04_fs_path.js && node node-demos/06_es_module.mjs",
+    "demo:event-loop": "node node-demos/01_event_loop.js",
+    "demo:streams": "node node-demos/02_buffers_streams.js",
+    "demo:emitter": "node node-demos/03_event_emitter.js",
+    "demo:fs": "node node-demos/04_fs_path.js",
+    "demo:http": "node node-demos/05_native_http_server.js",
+    "demo:modules": "node node-demos/06_es_module.mjs"
+  },
+  "keywords": [
+    "taskflow",
+    "student",
+    "task-management",
+    "express",
+    "mongodb",
+    "react",
+    "jwt-auth"
+  ],
+  "author": "Aradhya, Aaryan, Gunit",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "express": "^5.2.1"
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.4",
+    "multer": "^2.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

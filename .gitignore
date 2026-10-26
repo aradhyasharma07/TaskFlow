@@ -1,1 +1,6 @@
 node_modules/
+.env
+uploads/
+dist/
+temp_streams/
+.DS_Store
