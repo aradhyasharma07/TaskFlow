@@ -47,6 +47,17 @@ app.use(express.static(__dirname));
 // 5. Static File Middleware: Serves uploaded task attachments
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// 6. Static File Middleware: Serves built React SPA at /app (Lecture 42)
+const reactDistPath = path.join(__dirname, 'frontend', 'dist');
+app.use('/app', express.static(reactDistPath));
+app.get('/app', (req, res, next) => {
+    const indexPath = path.join(reactDistPath, 'index.html');
+    if (require('fs').existsSync(indexPath)) {
+        return res.sendFile(indexPath);
+    }
+    next();
+});
+
 
 // ===== SYSTEM HEALTH & STATUS ROUTE =====
 app.get('/api/status', (req, res) => {

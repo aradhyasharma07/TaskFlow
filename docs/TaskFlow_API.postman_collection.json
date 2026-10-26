@@ -1,0 +1,161 @@
+{
+  "info": {
+    "name": "TaskFlow - CHO FA2 API Collection",
+    "description": "Complete REST API collection for TaskFlow Student Task Management System testing in Postman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "System Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/status",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "status"]
+        }
+      }
+    },
+    {
+      "name": "Auth - Register Student",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Student Demo\",\n  \"email\": \"student@college.edu\",\n  \"password\": \"secret123\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/auth/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "Auth - Login Student",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"student@college.edu\",\n  \"password\": \"secret123\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/auth/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "Auth - Get Profile (Protected)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{JWT_TOKEN}}" }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/auth/me",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "auth", "me"]
+        }
+      }
+    },
+    {
+      "name": "Tasks - Get All Tasks",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tasks",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tasks"]
+        }
+      }
+    },
+    {
+      "name": "Tasks - Create Task",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Complete CHO FA2 Lab Record\",\n  \"description\": \"Include Event Loop diagrams and React component hierarchy\",\n  \"priority\": \"high\",\n  \"dueDate\": \"2026-11-15\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tasks",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tasks"]
+        }
+      }
+    },
+    {
+      "name": "Tasks - Update Task",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Complete CHO FA2 Lab Record (Reviewed)\",\n  \"description\": \"Checked with professor\",\n  \"priority\": \"medium\",\n  \"completed\": true\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/tasks/{{TASK_ID}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tasks", "{{TASK_ID}}"]
+        }
+      }
+    },
+    {
+      "name": "Tasks - Delete Task",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tasks/{{TASK_ID}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tasks", "{{TASK_ID}}"]
+        }
+      }
+    },
+    {
+      "name": "Tips - Get Daily Tip",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/tips/daily",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "tips", "daily"]
+        }
+      }
+    }
+  ]
+}

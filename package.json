@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "dev:react": "npm --prefix frontend run dev",
+    "build:react": "npm --prefix frontend run build",
     "demo:all": "node node-demos/01_event_loop.js && node node-demos/02_buffers_streams.js && node node-demos/03_event_emitter.js && node node-demos/04_fs_path.js && node node-demos/06_es_module.mjs",
     "demo:event-loop": "node node-demos/01_event_loop.js",
     "demo:streams": "node node-demos/02_buffers_streams.js",
