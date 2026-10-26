@@ -14,10 +14,15 @@
                 <div class="header-info">
                     <h1 class="app-title">TaskFlow</h1>
                     <p class="app-description">Organize your academic tasks efficiently and stay on track</p>
+                    <div class="session-badge" id="sessionBadge">Session Actions: 0</div>
                 </div>
-                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-                    <span class="theme-icon">🌙</span>
-                </button>
+                <div class="header-actions">
+                    <a href="demo-advanced-js.html" class="nav-pill" title="CHO FA2 Topic Demos">🔬 JS Demos</a>
+                    <a href="#taskListContainer" class="nav-pill">📋 Tasks</a>
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle Dark/Light Mode">
+                        <span class="theme-icon" id="themeIcon">🌙</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -25,6 +30,21 @@
     <!-- ===== MAIN CONTENT ===== -->
     <main class="main-content">
         <div class="container">
+
+            <!-- ===== DAILY STUDY TIP (API INTEGRATION) ===== -->
+            <section class="study-tip-card card" id="studyTipSection">
+                <div class="study-tip-content">
+                    <span class="study-tip-icon">💡</span>
+                    <div>
+                        <div class="study-tip-title">Daily Study Tip & Motivation (External API)</div>
+                        <p class="study-tip-text" id="studyTipText">Loading study tip...</p>
+                        <p class="study-tip-author" id="studyTipAuthor">— Powered by Advice API & Local Fallback</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-tip-refresh" id="refreshTipBtn">
+                    🔄 New Tip
+                </button>
+            </section>
             
             <!-- ===== TASK FORM SECTION ===== -->
             <section class="form-section card">
@@ -77,11 +97,16 @@
                         </div>
                     </div>
 
-                    <!-- Add Task Button -->
-                    <button type="submit" class="btn btn-primary btn-large">
-                        <span class="btn-icon">+</span>
-                        Add Task
-                    </button>
+                    <!-- Action Buttons: Add Task & Cancel Edit -->
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button type="submit" class="btn btn-primary btn-large" id="submitTaskBtn">
+                            <span class="btn-icon">+</span>
+                            Add Task
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-cancel" id="cancelEditBtn" style="display: none;">
+                            ✕ Cancel
+                        </button>
+                    </div>
                 </form>
             </section>
 
@@ -186,8 +211,21 @@
                 </div>
             </section>
 
+            <!-- ===== MEET OUR TEAM SECTION ===== -->
+            <section class="card" style="margin-top: 30px;">
+                <h2 class="section-title">Meet Our Team</h2>
+                <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:20px;">
+                    <a href="team/aradhya/index.html" class="nav-pill" style="color:var(--color-primary);background:var(--color-primary-light);">👤 Aradhya</a>
+                    <a href="team/aaryan/index.html" class="nav-pill" style="color:var(--color-primary);background:var(--color-primary-light);">👤 Aaryan</a>
+                    <a href="team/gunit/index.html" class="nav-pill" style="color:var(--color-primary);background:var(--color-primary-light);">👤 Gunit</a>
+                </div>
+            </section>
+
         </div>
     </main>
+
+    <!-- ===== TOAST NOTIFICATION CONTAINER ===== -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
     <!-- ===== FOOTER ===== -->
     <footer class="footer">
@@ -205,21 +243,7 @@
         </div>
     </footer>
 
-    <!-- JavaScript Files (to be added later) -->
+    <!-- JavaScript Files -->
     <script src="script.js"></script>
 </body>
 </html>
-
-<section class="card" style="margin-top:30px;">
-    <h2 class="section-title">Meet Our Team</h2>
-
-    <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:20px;">
-
-        <a href="team/aradhya/index.html">Aradhya</a>
-
-        <a href="team/aaryan/index.html">Aaryan</a>
-
-        <a href="team/gunit/index.html">Gunit</a>
-
-    </div>
-</section>

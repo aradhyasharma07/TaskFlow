@@ -1,23 +1,36 @@
-// ===================================
-// TaskFlow - JavaScript Foundation
+// ===================================================================
+// TaskFlow - JavaScript Foundation (Upgraded for CHO FA2 Evaluation)
 // Student Task Management System
-// ===================================
+// 
+// Topics Demonstrated:
+// - Callbacks & Asynchronous JavaScript (Lectures 25-26)
+// - Promises & Promise Chaining (Lecture 27)
+// - Async/Await & try/catch Error Handling (Lecture 28)
+// - Fetch API & REST API Consumption (Lecture 29)
+// - Web Storage: localStorage & sessionStorage (Lecture 30)
+// - Form Validation & Dynamic DOM Manipulation
+// ===================================================================
 
 // ===== GLOBAL VARIABLES =====
 
-// Array to store all tasks
+// Array to store all tasks in memory
 let tasks = [];
 
-// Object to cache DOM elements for easy access
+// Object to cache DOM elements for fast access without repeated queries
 let domElements = {};
 
-// Note: initializeApp will be called by DOMContentLoaded event below
-
-// Counter for generating unique task IDs
-let taskIdCounter = 1;
-
-// Store the ID of the task currently being edited (null if adding new task)
+// Store the ID of the task currently being edited (null if in "Add" mode)
 let editingTaskId = null;
+
+// Built-in academic study tips as reliable fallback if external API is unreachable
+const fallbackStudyTips = [
+    { text: "Use the Pomodoro Technique: 25 minutes of focused study followed by a 5-minute break.", author: "Productivity Guide" },
+    { text: "Review your lecture notes within 24 hours to double your memory retention.", author: "Cognitive Science" },
+    { text: "Break complex assignments into smaller tasks with clear deadlines.", author: "Academic Coach" },
+    { text: "Teach a concept to someone else (or your rubber duck) to expose gaps in understanding.", author: "Feynman Technique" },
+    { text: "Active recall through practice quizzes is far more effective than passive re-reading.", author: "Learning Psychology" },
+    { text: "Stay hydrated and get 7-8 hours of sleep; memory consolidation happens during rest.", author: "Health Advisory" }
+];
 
 
 // ===== DOM CACHING FUNCTION =====
@@ -25,10 +38,8 @@ let editingTaskId = null;
 /**
  * cacheDOMElements()
  * 
- * Purpose: Select and store all required DOM elements in an object
- * This avoids repeated DOM queries and improves performance
- * 
- * Returns: Nothing (stores elements in 'domElements' object)
+ * Purpose: Select and store all required DOM elements in the 'domElements' cache object.
+ * Why? Querying document.getElementById repeatedly is slow; caching elements once improves performance.
  */
 function cacheDOMElements() {
     domElements = {
@@ -38,8 +49,10 @@ function cacheDOMElements() {
         taskDescription: document.getElementById('taskDescription'),
         taskPriority: document.getElementById('taskPriority'),
         taskDueDate: document.getElementById('taskDueDate'),
+        submitTaskBtn: document.getElementById('submitTaskBtn'),
+        cancelEditBtn: document.getElementById('cancelEditBtn'),
         
-        // Search and filter elements
+        // Search, filter, and sort elements
         searchInput: document.getElementById('searchInput'),
         filterStatus: document.getElementById('filterStatus'),
         sortBy: document.getElementById('sortBy'),
@@ -49,62 +62,220 @@ function cacheDOMElements() {
         statCompleted: document.getElementById('statCompleted'),
         statPending: document.getElementById('statPending'),
         statPercentage: document.getElementById('statPercentage'),
-        
-        // Task list elements
-        taskListContainer: document.getElementById('taskListContainer'),
         taskCount: document.getElementById('taskCount'),
         
-        // Theme toggle
+        // Task list container
+        taskListContainer: document.getElementById('taskListContainer'),
+        
+        // Dark theme toggle
         themeToggle: document.getElementById('themeToggle'),
+        themeIcon: document.getElementById('themeIcon'),
+        
+        // Study tip elements (API integration)
+        studyTipSection: document.getElementById('studyTipSection'),
+        studyTipText: document.getElementById('studyTipText'),
+        studyTipAuthor: document.getElementById('studyTipAuthor'),
+        refreshTipBtn: document.getElementById('refreshTipBtn'),
+        
+        // Session storage badge and toast container
+        sessionBadge: document.getElementById('sessionBadge'),
+        toastContainer: document.getElementById('toastContainer')
     };
     
     console.log('✓ DOM Elements Cached Successfully');
 }
 
 
-// ===== TASK ID GENERATOR =====
+// ===== BROWSER STORAGE: LOCALSTORAGE & SESSIONSTORAGE (Lecture 30) =====
 
 /**
- * generateTaskId()
+ * initTheme()
  * 
- * Purpose: Generate a unique ID for each task
- * Simple implementation: increment a counter
- * 
- * Returns: Unique numeric ID (Number)
+ * Demonstrates: localStorage (persistent storage that survives browser restarts)
+ * Purpose: Load the user's preferred theme ('light' or 'dark') from localStorage.
  */
-function generateTaskId() {
-    return taskIdCounter++;
+function initTheme() {
+    // 1. Read stored preference from localStorage
+    const savedTheme = localStorage.getItem('taskflow_theme') || 'light';
+    
+    // 2. Apply theme to <html> tag
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // 3. Update icon
+    if (domElements.themeIcon) {
+        domElements.themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+    }
+    
+    console.log(`✓ Loaded theme from localStorage: ${savedTheme}`);
+}
+
+/**
+ * toggleTheme()
+ * 
+ * Purpose: Toggle between dark and light themes and save the choice in localStorage.
+ */
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    // Apply new theme
+    document.documentElement.setAttribute('data-theme', newTheme);
+    
+    // Update theme toggle icon
+    if (domElements.themeIcon) {
+        domElements.themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    }
+    
+    // Persist user preference in localStorage
+    localStorage.setItem('taskflow_theme', newTheme);
+    showToast(`Switched to ${newTheme} mode`, 'info');
+    console.log(`✓ Theme changed to ${newTheme} and saved in localStorage`);
+}
+
+/**
+ * updateSessionActions(actionName)
+ * 
+ * Demonstrates: sessionStorage (session storage that clears when the browser tab is closed)
+ * Purpose: Track how many actions the student has performed during the current browsing session.
+ */
+function updateSessionActions(actionName) {
+    // Read current count from sessionStorage, default to 0
+    let currentCount = parseInt(sessionStorage.getItem('taskflow_actions') || '0', 10);
+    currentCount += 1;
+    
+    // Save updated count back into sessionStorage
+    sessionStorage.setItem('taskflow_actions', currentCount.toString());
+    
+    // Update badge in UI
+    if (domElements.sessionBadge) {
+        domElements.sessionBadge.textContent = `Session Actions: ${currentCount}`;
+    }
+    
+    console.log(`📊 Session action logged (${actionName}). Total session actions: ${currentCount}`);
 }
 
 
-// ===== TASK OBJECT CREATOR =====
+// ===== TOAST NOTIFICATION UTILITY =====
 
 /**
- * createTaskObject(title, description, priority, dueDate)
+ * showToast(message, type)
  * 
- * Purpose: Create a task object with the required structure
- * Each task is an object with: id, title, description, priority, dueDate, completed, createdAt
- * 
+ * Purpose: Display a temporary floating notification on the screen
  * Parameters:
- * - title (String): Task title
- * - description (String): Task description
- * - priority (String): Priority level (low, medium, high)
- * - dueDate (String): Due date in YYYY-MM-DD format
- * 
- * Returns: Task object (Object)
+ * - message (String): Notification text
+ * - type (String): 'success' | 'error' | 'info'
  */
-function createTaskObject(title, description, priority, dueDate) {
-    const taskObject = {
-        id: generateTaskId(),
-        title: title.trim(),
-        description: description.trim(),
-        priority: priority,
-        dueDate: dueDate,
-        completed: false,
-        createdAt: new Date().toISOString(), // Store current timestamp
-    };
+function showToast(message, type = 'info') {
+    if (!domElements.toastContainer) return;
     
-    return taskObject;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    let icon = 'ℹ️';
+    if (type === 'success') icon = '✅';
+    if (type === 'error') icon = '⚠️';
+    
+    toast.innerHTML = `<span>${icon} ${message}</span>`;
+    domElements.toastContainer.appendChild(toast);
+    
+    // Automatically remove after 3.5 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3500);
+}
+
+
+// ===== EXTERNAL API INTEGRATION & ASYNC/AWAIT (Lectures 27-29) =====
+
+/**
+ * fetchDailyStudyTip()
+ * 
+ * Demonstrates:
+ * 1. Async/Await syntax (Lecture 28)
+ * 2. Fetch API for REST API consumption (Lecture 29)
+ * 3. try...catch error handling (Lecture 28)
+ * 4. Fallback strategy when network/external API fails
+ * 
+ * Process:
+ * 1. Show loading state in UI
+ * 2. Fetch advice from public API
+ * 3. Verify response.ok status
+ * 4. Parse JSON
+ * 5. Update UI; if error occurs, catch it and load local fallback tip
+ */
+async function fetchDailyStudyTip() {
+    if (!domElements.studyTipText) return;
+    
+    // Step 1: Show loading state
+    domElements.studyTipText.textContent = "Fetching study tip...";
+    if (domElements.refreshTipBtn) domElements.refreshTipBtn.disabled = true;
+    
+    try {
+        // Step 2: Fetch from external Advice Slip REST API
+        // Adding a timestamp prevents browser caching of the API response
+        const response = await fetch(`https://api.adviceslip.com/advice?t=${Date.now()}`);
+        
+        // Step 3: Check HTTP status code
+        if (!response.ok) {
+            throw new Error(`External API responded with status: ${response.status}`);
+        }
+        
+        // Step 4: Parse JSON response
+        const data = await response.json();
+        
+        if (data && data.slip && data.slip.advice) {
+            domElements.studyTipText.textContent = `"${data.slip.advice}"`;
+            domElements.studyTipAuthor.textContent = "— Advice Slip REST API (Online)";
+            console.log('✓ Successfully fetched study tip from external API');
+        } else {
+            throw new Error("Invalid response format from external API");
+        }
+    } catch (error) {
+        // Step 5: Graceful error fallback
+        console.warn('⚠️ External tip API error, using educational fallback:', error.message);
+        
+        // Pick a random fallback quote from our local array
+        const randomTip = fallbackStudyTips[Math.floor(Math.random() * fallbackStudyTips.length)];
+        domElements.studyTipText.textContent = `"${randomTip.text}"`;
+        domElements.studyTipAuthor.textContent = `— ${randomTip.author} (Offline Fallback)`;
+    } finally {
+        // Re-enable button
+        if (domElements.refreshTipBtn) domElements.refreshTipBtn.disabled = false;
+    }
+}
+
+/**
+ * fetchDailyStudyTipWithPromiseChain()
+ * 
+ * Demonstrates: Promise chaining (.then().catch()) as required by CHO Syllabus Lecture 27
+ * This is an alternative version kept for viva demonstration to show the difference between
+ * Promise chaining and async/await.
+ */
+function fetchDailyStudyTipWithPromiseChain() {
+    console.log('🔗 Demonstrating Promise chaining (.then / .catch)...');
+    
+    fetch(`https://api.adviceslip.com/advice?t=${Date.now()}`)
+        .then(response => {
+            if (!response.ok) throw new Error("HTTP error " + response.status);
+            return response.json(); // Returns another Promise
+        })
+        .then(data => {
+            console.log('✓ Promise chained resolved data:', data);
+            if (domElements.studyTipText && data.slip) {
+                domElements.studyTipText.textContent = `"${data.slip.advice}"`;
+                domElements.studyTipAuthor.textContent = "— Advice Slip (Promise Chained)";
+            }
+        })
+        .catch(error => {
+            console.error('✗ Promise chain catch handler:', error);
+            const randomTip = fallbackStudyTips[0];
+            if (domElements.studyTipText) {
+                domElements.studyTipText.textContent = `"${randomTip.text}"`;
+                domElements.studyTipAuthor.textContent = `— ${randomTip.author} (Fallback)`;
+            }
+        });
 }
 
 
@@ -112,37 +283,21 @@ function createTaskObject(title, description, priority, dueDate) {
 
 /**
  * showEmptyState()
- * 
- * Purpose: Display the empty state message when no tasks exist
- * Shows a friendly message encouraging the user to add their first task
- * 
- * Returns: Nothing
+ * Displays a friendly placeholder when no tasks match current filter/search.
  */
 function showEmptyState() {
     const emptyStateHTML = `
         <div class="empty-state">
             <div class="empty-icon">📝</div>
             <h3 class="empty-title">No tasks available</h3>
-            <p class="empty-message">Add your first task to get started</p>
+            <p class="empty-message">Add your first task or change your search filter to get started</p>
         </div>
     `;
-    
     domElements.taskListContainer.innerHTML = emptyStateHTML;
-    console.log('✓ Empty State Displayed');
 }
 
-
-/**
- * hideEmptyState()
- * 
- * Purpose: Remove the empty state when tasks are added
- * Clears the task list container to prepare for task rendering
- * 
- * Returns: Nothing
- */
 function hideEmptyState() {
     domElements.taskListContainer.innerHTML = '';
-    console.log('✓ Empty State Hidden');
 }
 
 
@@ -151,42 +306,29 @@ function hideEmptyState() {
 /**
  * validateTaskForm(title)
  * 
- * Purpose: Validate the task form before submission
- * Currently checks if title is not empty
- * 
+ * Demonstrates: Client-side Form Validation
  * Parameters:
- * - title (String): The task title to validate
- * 
+ * - title (String): Task title
  * Returns: Boolean (true if valid, false if invalid)
  */
 function validateTaskForm(title) {
-    // Check if title is empty or contains only whitespace
-    if (title.trim() === '') {
+    if (!title || title.trim() === '') {
         showFormError('Task title cannot be empty');
         return false;
     }
     
-    // Clear any previous error messages
+    if (title.trim().length < 2) {
+        showFormError('Task title must be at least 2 characters long');
+        return false;
+    }
+    
     clearFormError();
     return true;
 }
 
-
-/**
- * showFormError(message)
- * 
- * Purpose: Display an error message below the task title input
- * 
- * Parameters:
- * - message (String): Error message to display
- * 
- * Returns: Nothing
- */
 function showFormError(message) {
-    // Remove existing error message if present
     clearFormError();
     
-    // Create error element
     const errorElement = document.createElement('p');
     errorElement.className = 'form-error';
     errorElement.id = 'formErrorMessage';
@@ -196,224 +338,110 @@ function showFormError(message) {
     errorElement.style.marginTop = 'var(--spacing-xs)';
     errorElement.style.fontWeight = 'var(--font-weight-semibold)';
     
-    // Insert error message after the task title input
     domElements.taskTitle.parentElement.appendChild(errorElement);
-    
-    // Highlight the input field with error styling
     domElements.taskTitle.style.borderColor = 'var(--color-danger)';
     domElements.taskTitle.style.boxShadow = '0 0 0 3px var(--color-danger-light)';
-    
-    console.log('✗ Form Error:', message);
 }
 
-
-/**
- * clearFormError()
- * 
- * Purpose: Remove error message and styling from the form
- * 
- * Returns: Nothing
- */
 function clearFormError() {
     const errorElement = document.getElementById('formErrorMessage');
+    if (errorElement) errorElement.remove();
     
-    if (errorElement) {
-        errorElement.remove();
+    if (domElements.taskTitle) {
+        domElements.taskTitle.style.borderColor = '';
+        domElements.taskTitle.style.boxShadow = '';
     }
-    
-    // Reset input field styling
-    domElements.taskTitle.style.borderColor = '';
-    domElements.taskTitle.style.boxShadow = '';
 }
 
 
-// ===== EVENT HANDLERS =====
-
-/**
- * addTask()
- * 
- * Purpose: Add a new task to the backend using a POST request
- * 
- * Process:
- * 1. Get form input values
- * 2. Validate the task title
- * 3. Create a task object with form data
- * 4. Send POST request to /api/tasks
- * 5. If successful: add returned task to array, render, update stats, clear form
- * 6. If error: show error message
- * 
- * Returns: Nothing
- */
-function addTask() {
-    // Get form input values
-    const title = domElements.taskTitle.value;
-    const description = domElements.taskDescription.value;
-    const priority = domElements.taskPriority.value;
-    const dueDate = domElements.taskDueDate.value;
-    
-    // Validate the form - if title is empty, show error and stop
-    if (!validateTaskForm(title)) {
-        return; // Exit function if validation fails
-    }
-    
-    // Create a task object with only the form data
-    const newTask = {
-        title: title.trim(),
-        description: description.trim(),
-        priority: priority,
-        dueDate: dueDate,
-        completed: false
-    };
-    
-    // Send the new task to the backend using POST request
-    fetch("/api/tasks", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(newTask)
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Add the returned task (with server-generated ID and timestamp) to the array
-        tasks.push(data);
-        console.log(`✓ Task added successfully. Total tasks: ${tasks.length}`);
-        
-        // Hide the empty state since we now have tasks
-        hideEmptyState();
-        
-        // Render all tasks on the page
-        renderTasks();
-        
-        // Update the statistics cards
-        updateStatistics();
-        
-        // Clear the form inputs for the next task
-        clearForm();
-        
-        // Focus back on the title input field for convenience
-        domElements.taskTitle.focus();
-    })
-    .catch(error => {
-        console.error("❌ Error adding task:", error);
-        showFormError("Failed to add task. Please try again.");
-    });
-}
-
+// ===== SEARCH, FILTER, AND SORTING =====
 
 /**
  * getFilteredTasks()
  * 
- * Purpose: Search and filter tasks based on user input
- * 
- * Process:
- * 1. Get the search text from searchInput
- * 2. Convert search text to lowercase for case-insensitive search
- * 3. Get the filter status from filterStatus dropdown
- * 4. Use filter() to keep only tasks that match both search and status
- * 5. Return the filtered list
- * 
- * Returns: Array of filtered tasks
+ * Demonstrates: Array methods (filter, sort, toLowerCase)
+ * Purpose: Returns the filtered and sorted list of tasks based on user selections.
  */
 function getFilteredTasks() {
-    // Get the search text from the search input
-    const searchText = domElements.searchInput.value.toLowerCase();
+    const searchText = (domElements.searchInput ? domElements.searchInput.value : '').toLowerCase().trim();
+    const filterStatus = domElements.filterStatus ? domElements.filterStatus.value : 'all';
+    const sortBy = domElements.sortBy ? domElements.sortBy.value : 'newest';
     
-    // Get the filter status value (all, pending, or completed)
-    const filterStatus = domElements.filterStatus.value;
-    
-    // Filter the tasks array based on search and status
-    const filteredTasks = tasks.filter((task) => {
-        // Convert task title to lowercase and check if it includes the search text
-        const matchesSearch = task.title.toLowerCase().includes(searchText);
+    // 1. Filter by search text and completed status
+    let filtered = tasks.filter((task) => {
+        const matchesSearch = task.title.toLowerCase().includes(searchText) ||
+                              (task.description && task.description.toLowerCase().includes(searchText));
         
-        // Check if the task matches the selected filter status
-        let matchesStatus;
-        if (filterStatus === 'all') {
-            // Show all tasks
-            matchesStatus = true;
-        } else if (filterStatus === 'pending') {
-            // Show only pending tasks (completed is false)
+        let matchesStatus = true;
+        if (filterStatus === 'pending') {
             matchesStatus = task.completed === false;
         } else if (filterStatus === 'completed') {
-            // Show only completed tasks (completed is true)
             matchesStatus = task.completed === true;
-        } else {
-            // Default to showing all
-            matchesStatus = true;
         }
         
-        // Return true only if both search and status match
         return matchesSearch && matchesStatus;
     });
     
-    return filteredTasks;
+    // 2. Sort the filtered array
+    filtered.sort((a, b) => {
+        if (sortBy === 'newest') {
+            // Newest ID first (or newest date)
+            return (b.id || 0) - (a.id || 0);
+        } else if (sortBy === 'oldest') {
+            // Oldest ID first
+            return (a.id || 0) - (b.id || 0);
+        } else if (sortBy === 'alphabetical') {
+            // Alphabetical by title
+            return a.title.localeCompare(b.title);
+        } else if (sortBy === 'priority') {
+            // High = 3, Medium = 2, Low = 1
+            const weight = { high: 3, medium: 2, low: 1 };
+            const weightA = weight[a.priority] || 2;
+            const weightB = weight[b.priority] || 2;
+            return weightB - weightA;
+        }
+        return 0;
+    });
+    
+    return filtered;
 }
 
+
+// ===== RENDERING TASKS =====
 
 /**
  * renderTasks()
  * 
- * Purpose: Render all tasks from the tasks array to the page
- * 
- * Process:
- * 1. Get filtered tasks using getFilteredTasks()
- * 2. Clear the task list container
- * 3. Loop through each filtered task
- * 4. Create a task card for each task
- * 5. Add the task card to the container
- * 6. Attach event listeners to edit buttons
- * 
- * Returns: Nothing
+ * Purpose: Render tasks inside #taskListContainer and bind click handlers.
  */
 function renderTasks() {
-    // Get the filtered list of tasks based on search and filter
     const filteredTasks = getFilteredTasks();
-    
-    // Clear the task list container to remove old tasks
     domElements.taskListContainer.innerHTML = '';
     
-    // Check if there are no filtered tasks - show empty state
     if (filteredTasks.length === 0) {
         showEmptyState();
         return;
     }
     
-    // Loop through each filtered task in the array
     filteredTasks.forEach((task) => {
-        // Create HTML for this task card
         const taskCardHTML = createTaskCard(task);
-        
-        // Add the task card HTML to the container
         domElements.taskListContainer.innerHTML += taskCardHTML;
     });
     
-    // Attach event listeners to all Edit buttons after rendering
+    // Attach event listeners to newly rendered action buttons
     attachEditButtonListeners();
-    
-    console.log(`✓ Rendered ${filteredTasks.length} filtered task(s) on the page`);
 }
-
 
 /**
  * createTaskCard(task)
  * 
- * Purpose: Create HTML for a single task card using template literals
- * 
- * Parameters:
- * - task (Object): The task object containing all task properties
- * 
- * Returns: String (HTML template for the task card)
+ * Purpose: Create the HTML string for a single task card.
  */
 function createTaskCard(task) {
-    // Format the created date to be more readable
-    const createdDate = new Date(task.createdAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
-    
-    // Format the due date to be more readable
+    const createdDate = task.createdAt 
+        ? new Date(task.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+        : 'Recently';
+        
     let dueDateDisplay = 'No due date';
     if (task.dueDate) {
         dueDateDisplay = new Date(task.dueDate).toLocaleDateString('en-US', {
@@ -423,481 +451,242 @@ function createTaskCard(task) {
         });
     }
     
-    // Determine status text based on completed boolean
     const statusText = task.completed ? 'Completed' : 'Pending';
     const statusClass = task.completed ? 'task-status-completed' : 'task-status-pending';
+    const priorityClass = `priority-${task.priority || 'medium'}`;
     
-    // Create priority badge with appropriate color class
-    const priorityClass = `priority-${task.priority}`;
-    
-    // Create a button or badge based on completion status
     let statusButton = '';
     if (task.completed) {
-        // Show a green completed badge for completed tasks
-        statusButton = `<span class="task-status ${statusClass}" style="padding: 6px 12px; border-radius: 4px; background-color: #4caf50; color: white;">✓ Completed</span>`;
+        statusButton = `<span class="task-status ${statusClass}" style="padding: 6px 12px; border-radius: 4px; background-color: #10b981; color: white;">✓ Completed</span>`;
     } else {
-        // Show a complete button for pending tasks
-        statusButton = `<button class="btn-complete" data-task-id="${task.id}" aria-label="Mark task as complete">
-            ✓ Complete
-        </button>`;
+        statusButton = `<button class="btn-complete" data-task-id="${task.id}" aria-label="Mark task as complete">✓ Complete</button>`;
     }
     
-    // Return HTML template string for the task card
-    const taskCardHTML = `
+    return `
         <div class="task-card" data-task-id="${task.id}">
             <div class="task-header">
                 <div class="task-title-section">
-                    <h3 class="task-title">${task.title}</h3>
+                    <h3 class="task-title" style="${task.completed ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${task.title}</h3>
                     <span class="priority-badge ${priorityClass}">
-                        ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                        ${(task.priority || 'medium').toUpperCase()}
                     </span>
                 </div>
                 <div class="task-actions">
-                    <button class="btn-edit" data-task-id="${task.id}" aria-label="Edit task">
-                        ✏️ Edit
-                    </button>
-                    <button class="btn-delete" data-task-id="${task.id}" aria-label="Delete task">
-                        🗑️ Delete
-                    </button>
+                    <button class="btn-edit" data-task-id="${task.id}" aria-label="Edit task">✏️ Edit</button>
+                    <button class="btn-delete" data-task-id="${task.id}" aria-label="Delete task">🗑️ Delete</button>
                 </div>
             </div>
             
             <p class="task-description">${task.description || 'No description provided'}</p>
             
             <div class="task-meta">
-                <span class="task-status ${statusClass}">
-                    📌 ${statusText}
-                </span>
-                <span class="task-date">
-                    📅 Due: ${dueDateDisplay}
-                </span>
-                <span class="task-created">
-                    🕐 Created: ${createdDate}
-                </span>
+                <span class="task-status ${statusClass}">📌 ${statusText}</span>
+                <span class="task-date">📅 Due: ${dueDateDisplay}</span>
+                <span class="task-created">🕐 Created: ${createdDate}</span>
             </div>
             
-            <div class="task-complete-section">
+            <div class="task-complete-section" style="margin-top: 12px;">
                 ${statusButton}
             </div>
         </div>
     `;
-    
-    return taskCardHTML;
 }
 
-
-/**
- * clearForm()
- * 
- * Purpose: Clear all form inputs and error messages
- * Prepare the form for the next task entry
- * 
- * Returns: Nothing
- */
-function clearForm() {
-    // Reset all form inputs to their default values
-    domElements.taskForm.reset();
-    
-    // Clear any error messages from validation
-    clearFormError();
-    
-    console.log('✓ Form cleared');
-}
-
-
-/**
- * updateStatistics()
- * 
- * Purpose: Calculate and update the statistics cards
- * 
- * Calculations:
- * - Total Tasks: Count of all tasks
- * - Completed: Count of tasks with completed = true
- * - Pending: Count of tasks with completed = false
- * - Completion %: (Completed / Total) * 100
- * 
- * Returns: Nothing
- */
 function updateStatistics() {
-    // Calculate total number of tasks
     const totalTasks = tasks.length;
-    
-    // Calculate completed tasks by filtering for completed: true
     const completedTasks = tasks.filter((task) => task.completed === true).length;
-    
-    // Calculate pending tasks by filtering for completed: false
     const pendingTasks = tasks.filter((task) => task.completed === false).length;
-    
-    // Calculate completion percentage
-    // Avoid division by zero: if no tasks, percentage is 0
     const completionPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
     
-    // Update the DOM elements with calculated values
-    domElements.statTotal.textContent = totalTasks;
-    domElements.statCompleted.textContent = completedTasks;
-    domElements.statPending.textContent = pendingTasks;
-    domElements.statPercentage.textContent = `${completionPercentage}%`;
-    
-    // Update task count display
-    const taskCountText = totalTasks === 1 ? '1 task' : `${totalTasks} tasks`;
-    domElements.taskCount.textContent = taskCountText;
-    
-    console.log(`📊 Statistics Updated - Total: ${totalTasks}, Completed: ${completedTasks}, Pending: ${pendingTasks}, %: ${completionPercentage}%`);
+    if (domElements.statTotal) domElements.statTotal.textContent = totalTasks;
+    if (domElements.statCompleted) domElements.statCompleted.textContent = completedTasks;
+    if (domElements.statPending) domElements.statPending.textContent = pendingTasks;
+    if (domElements.statPercentage) domElements.statPercentage.textContent = `${completionPercentage}%`;
+    if (domElements.taskCount) {
+        domElements.taskCount.textContent = totalTasks === 1 ? '1 task' : `${totalTasks} tasks`;
+    }
 }
 
 
-// ===== EDIT & UPDATE FUNCTIONS =====
+// ===== BACKEND CRUD OPERATIONS (ASYNC/AWAIT & FETCH API) =====
 
 /**
- * getTaskById(id)
+ * loadTasks()
  * 
- * Purpose: Find and return a task object by its ID using find() method
- * 
- * Parameters:
- * - id (Number): The ID of the task to find
- * 
- * Returns: Task object if found, undefined if not found
+ * Demonstrates: Fetch API GET request with async/await
  */
-function getTaskById(id) {
-    // Use find() to return the first task that matches the ID
-    return tasks.find((task) => task.id === id);
+async function loadTasks() {
+    try {
+        const response = await fetch("/api/tasks");
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load tasks. Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        tasks = data;
+        
+        renderTasks();
+        updateStatistics();
+        console.log(`✓ Loaded ${tasks.length} task(s) from backend`);
+    } catch (error) {
+        console.error("❌ Error loading tasks from backend:", error);
+        showEmptyState();
+        showToast("Could not connect to task server", "error");
+    }
 }
 
-
 /**
- * editTask(id)
+ * addTask()
  * 
- * Purpose: Enter edit mode for a specific task
- * 
- * Process:
- * 1. Find the task by ID using find()
- * 2. Store the task ID in editingTaskId variable
- * 3. Populate the form with the task's current data
- * 4. Change the submit button text to "Update Task"
- * 5. Scroll to the form
- * 
- * Parameters:
- * - id (Number): The ID of the task to edit
- * 
- * Returns: Nothing
+ * Demonstrates: Fetch API POST request with JSON payload & validation
  */
-function editTask(id) {
-    // Find the task object using the ID
-    const task = getTaskById(id);
+async function addTask() {
+    const title = domElements.taskTitle.value;
+    const description = domElements.taskDescription.value;
+    const priority = domElements.taskPriority.value;
+    const dueDate = domElements.taskDueDate.value;
     
-    // If task not found, stop execution
-    if (!task) {
-        console.error(`❌ Task with ID ${id} not found`);
+    if (!validateTaskForm(title)) {
         return;
     }
     
-    // Store the ID of the task being edited
-    editingTaskId = id;
+    const newTaskPayload = {
+        title: title.trim(),
+        description: description.trim(),
+        priority: priority,
+        dueDate: dueDate,
+        completed: false
+    };
     
-    // Populate the form with the task's current data
-    populateForm(task);
-    
-    // Change the submit button text to indicate we're updating
-    const submitButton = domElements.taskForm.querySelector('button[type="submit"]');
-    submitButton.innerHTML = '<span class="btn-icon">✓</span>Update Task';
-    submitButton.classList.add('btn-update');
-    
-    // Scroll to the form so user can see it
-    domElements.taskForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    
-    // Focus on the title input
-    domElements.taskTitle.focus();
-    
-    console.log(`✏️ Editing task with ID: ${id}`);
+    try {
+        const response = await fetch("/api/tasks", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newTaskPayload)
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Failed to add task (${response.status})`);
+        }
+        
+        const createdTask = await response.json();
+        tasks.push(createdTask);
+        
+        renderTasks();
+        updateStatistics();
+        clearForm();
+        updateSessionActions('Add Task');
+        showToast("Task added successfully!", "success");
+        domElements.taskTitle.focus();
+    } catch (error) {
+        console.error("❌ Error adding task:", error);
+        showFormError(error.message);
+        showToast(error.message, "error");
+    }
 }
-
-
-/**
- * populateForm(task)
- * 
- * Purpose: Fill the form fields with a task's data
- * 
- * Parameters:
- * - task (Object): The task object containing data to fill into the form
- * 
- * Returns: Nothing
- */
-function populateForm(task) {
-    // Set the title field value
-    domElements.taskTitle.value = task.title;
-    
-    // Set the description field value
-    domElements.taskDescription.value = task.description;
-    
-    // Set the priority dropdown value
-    domElements.taskPriority.value = task.priority;
-    
-    // Set the due date field value
-    domElements.taskDueDate.value = task.dueDate;
-    
-    // Clear any validation error messages
-    clearFormError();
-    
-    console.log('✓ Form populated with task data');
-}
-
 
 /**
  * updateTask(id)
  * 
- * Purpose: Update an existing task on the backend
- * 
- * Process:
- * 1. Get the new values from the form
- * 2. Validate the new title
- * 3. Send PUT request to /api/tasks/:id with updated data
- * 4. If successful: update array, render, update stats, reset form
- * 5. If error: show error message
- * 
- * Parameters:
- * - id (Number): The ID of the task to update
- * 
- * Returns: Nothing
+ * Demonstrates: Fetch API PUT request
  */
-function updateTask(id) {
-    // Get the new values from the form
+async function updateTask(id) {
     const newTitle = domElements.taskTitle.value;
     const newDescription = domElements.taskDescription.value;
     const newPriority = domElements.taskPriority.value;
     const newDueDate = domElements.taskDueDate.value;
     
-    // Validate the new title
     if (!validateTaskForm(newTitle)) {
-        return; // Stop if validation fails
+        return;
     }
     
-    // Create an object with the data to send to the backend
-    const updatedTaskData = {
+    // Find current task to preserve completion status
+    const existingTask = tasks.find(t => t.id === id);
+    const isCompleted = existingTask ? existingTask.completed : false;
+    
+    const updatedPayload = {
         title: newTitle.trim(),
         description: newDescription.trim(),
         priority: newPriority,
         dueDate: newDueDate,
-        completed: false
+        completed: isCompleted
     };
     
-    // Send PUT request to update the task on the backend
-    fetch(`/api/tasks/${id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(updatedTaskData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Find and replace the task in the array with the updated one from backend
-        const taskIndex = tasks.findIndex((task) => task.id === id);
-        if (taskIndex !== -1) {
-            tasks[taskIndex] = data;
+    try {
+        const response = await fetch(`/api/tasks/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(updatedPayload)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to update task (${response.status})`);
         }
         
-        console.log(`✓ Task with ID ${id} updated successfully`);
+        const updatedTask = await response.json();
         
-        // Re-render the task list with updated data
+        const taskIndex = tasks.findIndex((task) => task.id === id);
+        if (taskIndex !== -1) {
+            tasks[taskIndex] = updatedTask;
+        }
+        
         renderTasks();
-        
-        // Update statistics
         updateStatistics();
-        
-        // Exit edit mode and reset the form
         resetForm();
-    })
-    .catch(error => {
-        console.error(`❌ Error updating task with ID ${id}:`, error);
+        updateSessionActions('Update Task');
+        showToast("Task updated successfully!", "success");
+    } catch (error) {
+        console.error(`❌ Error updating task ${id}:`, error);
         showFormError("Failed to update task. Please try again.");
-    });
+        showToast("Failed to update task", "error");
+    }
 }
-
-
-/**
- * resetForm()
- * 
- * Purpose: Clear the form and exit edit mode
- * 
- * Process:
- * 1. Clear all form inputs
- * 2. Set editingTaskId back to null
- * 3. Change submit button text back to "Add Task"
- * 4. Clear any error messages
- * 
- * Returns: Nothing
- */
-function resetForm() {
-    // Clear all form inputs to default values
-    domElements.taskForm.reset();
-    
-    // Set the editing task ID to null (no task is being edited)
-    editingTaskId = null;
-    
-    // Get the submit button and change text back to "Add Task"
-    const submitButton = domElements.taskForm.querySelector('button[type="submit"]');
-    submitButton.innerHTML = '<span class="btn-icon">+</span>Add Task';
-    submitButton.classList.remove('btn-update');
-    
-    // Clear any validation error messages
-    clearFormError();
-    
-    console.log('✓ Form reset - exited edit mode');
-}
-
-
-/**
- * attachEditButtonListeners()
- * 
- * Purpose: Attach click event listeners to all Edit, Delete, and Complete buttons on the page
- * This is called after rendering tasks to bind events to dynamically created elements
- * 
- * Process:
- * 1. Select all Edit buttons and add listeners
- * 2. Select all Delete buttons and add listeners
- * 3. Select all Complete buttons and add listeners
- * 
- * Returns: Nothing
- */
-function attachEditButtonListeners() {
-    // Select all Edit buttons on the page
-    const editButtons = document.querySelectorAll('.btn-edit');
-    
-    // Add click event listener to each Edit button
-    editButtons.forEach((button) => {
-        button.addEventListener('click', (event) => {
-            // Prevent any default button behavior
-            event.preventDefault();
-            
-            // Get the task ID from the button's data attribute
-            const taskId = parseInt(button.getAttribute('data-task-id'));
-            
-            // Call editTask with the task ID
-            editTask(taskId);
-        });
-    });
-    
-    // Select all Delete buttons on the page
-    const deleteButtons = document.querySelectorAll('.btn-delete');
-    
-    // Add click event listener to each Delete button
-    deleteButtons.forEach((button) => {
-        button.addEventListener('click', (event) => {
-            // Prevent any default button behavior
-            event.preventDefault();
-            
-            // Get the task ID from the button's data attribute
-            const taskId = parseInt(button.getAttribute('data-task-id'));
-            
-            // Call deleteTask with the task ID
-            deleteTask(taskId);
-        });
-    });
-    
-    // Select all Complete buttons on the page
-    const completeButtons = document.querySelectorAll('.btn-complete');
-    
-    // Add click event listener to each Complete button
-    completeButtons.forEach((button) => {
-        button.addEventListener('click', (event) => {
-            // Prevent any default button behavior
-            event.preventDefault();
-            
-            // Get the task ID from the button's data attribute
-            const taskId = parseInt(button.getAttribute('data-task-id'));
-            
-            // Call completeTask with the task ID
-            completeTask(taskId);
-        });
-    });
-    
-    console.log(`✓ Attached listeners to ${editButtons.length} edit button(s), ${deleteButtons.length} delete button(s), and ${completeButtons.length} complete button(s)`);
-}
-
-
-// ===== DELETE TASK FUNCTION =====
 
 /**
  * deleteTask(id)
  * 
- * Purpose: Delete a task from the backend and update the UI
- * 
- * Process:
- * 1. Ask the user for confirmation using confirm()
- * 2. If user cancels: stop and do nothing
- * 3. If user confirms: send DELETE request to /api/tasks/:id
- * 4. If successful: remove task from array, render, update stats
- * 5. If error: show message in console
- * 
- * Parameters:
- * - id (Number): The ID of the task to delete
- * 
- * Returns: Nothing
+ * Demonstrates: Fetch API DELETE request
  */
-function deleteTask(id) {
-    // Ask the user for confirmation before deleting
-    const confirmDelete = confirm("Do you want to delete this task?");
+async function deleteTask(id) {
+    const confirmDelete = confirm("Are you sure you want to delete this task?");
+    if (!confirmDelete) return;
     
-    // If user clicked Cancel, stop and do nothing
-    if (!confirmDelete) {
-        return;
-    }
-    
-    // Send DELETE request to the backend
-    fetch(`/api/tasks/${id}`, {
-        method: "DELETE"
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Remove the task from the tasks array using filter()
-        // Keep only tasks that don't match the deleted ID
+    try {
+        const response = await fetch(`/api/tasks/${id}`, {
+            method: "DELETE"
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to delete task (${response.status})`);
+        }
+        
         tasks = tasks.filter((task) => task.id !== id);
-        
-        console.log(`✓ Task with ID ${id} deleted successfully`);
-        
-        // Render all remaining tasks on the page
         renderTasks();
-        
-        // Update the statistics cards
         updateStatistics();
-    })
-    .catch(error => {
-        console.error(`❌ Error deleting task with ID ${id}:`, error);
-    });
+        updateSessionActions('Delete Task');
+        showToast("Task deleted", "info");
+    } catch (error) {
+        console.error(`❌ Error deleting task ${id}:`, error);
+        showToast("Error deleting task", "error");
+    }
 }
-
-
-// ===== COMPLETE TASK FUNCTION =====
 
 /**
  * completeTask(id)
  * 
- * Purpose: Mark a task as complete using the PUT API
- * 
- * Process:
- * 1. Find the task from the tasks array
- * 2. Send PUT request to /api/tasks/:id with completed: true
- * 3. Keep all other task values the same
- * 4. If successful: update array, render, update stats
- * 5. If error: show message in console
- * 
- * Parameters:
- * - id (Number): The ID of the task to mark as complete
- * 
- * Returns: Nothing
+ * Demonstrates: Fetch API PUT request to toggle/set completion
  */
-function completeTask(id) {
-    // Find the task from the tasks array
+async function completeTask(id) {
     const task = tasks.find((t) => t.id === id);
+    if (!task) return;
     
-    // If task not found, stop execution
-    if (!task) {
-        console.error(`❌ Task with ID ${id} not found`);
-        return;
-    }
-    
-    // Create an object with all task data but set completed to true
-    const updatedTaskData = {
+    const updatedPayload = {
         title: task.title,
         description: task.description,
         priority: task.priority,
@@ -905,206 +694,187 @@ function completeTask(id) {
         completed: true
     };
     
-    // Send PUT request to mark the task as complete
-    fetch(`/api/tasks/${id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(updatedTaskData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Find and replace the task in the array with the updated one from backend
-        const taskIndex = tasks.findIndex((t) => t.id === id);
-        if (taskIndex !== -1) {
-            tasks[taskIndex] = data;
+    try {
+        const response = await fetch(`/api/tasks/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(updatedPayload)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to mark task complete (${response.status})`);
         }
         
-        console.log(`✓ Task with ID ${id} marked as complete`);
+        const updatedTask = await response.json();
+        const taskIndex = tasks.findIndex((t) => t.id === id);
+        if (taskIndex !== -1) {
+            tasks[taskIndex] = updatedTask;
+        }
         
-        // Render all tasks on the page to show updated status
         renderTasks();
-        
-        // Update the statistics cards
         updateStatistics();
-    })
-    .catch(error => {
-        console.error(`❌ Error completing task with ID ${id}:`, error);
-    });
-}
-
-
-// ===== EVENT HANDLERS =====
-
-/**
- * handleFormSubmit(event)
- * 
- * Purpose: Handle the form submission (Add or Update)
- * 
- * Process:
- * 1. Prevent default form behavior
- * 2. Check if we're in edit mode (editingTaskId exists)
- * 3. If editing: call updateTask()
- * 4. If adding: call addTask()
- * 
- * Parameters:
- * - event (Event): The form submit event
- * 
- * Returns: Nothing
- */
-function handleFormSubmit(event) {
-    // Prevent the default form submission behavior (page refresh)
-    event.preventDefault();
-    
-    // Check if we're in edit mode by checking if editingTaskId is set
-    if (editingTaskId !== null) {
-        // We're updating an existing task
-        updateTask(editingTaskId);
-    } else {
-        // We're adding a new task
-        addTask();
+        updateSessionActions('Complete Task');
+        showToast("🎉 Task marked as complete!", "success");
+    } catch (error) {
+        console.error(`❌ Error completing task ${id}:`, error);
+        showToast("Failed to mark task complete", "error");
     }
 }
 
 
-/**
- * handleSearchAndFilter(event)
- * 
- * Purpose: Handle search and filter input changes
- * 
- * Process:
- * 1. Render tasks with the new filter/search
- * 
- * Parameters:
- * - event (Event): The input or change event from search or filter
- * 
- * Returns: Nothing
- */
-function handleSearchAndFilter(event) {
-    // Re-render the tasks with the new search/filter
-    renderTasks();
+// ===== FORM EDIT & RESET MODES =====
+
+function editTask(id) {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    
+    editingTaskId = id;
+    
+    domElements.taskTitle.value = task.title;
+    domElements.taskDescription.value = task.description || '';
+    domElements.taskPriority.value = task.priority || 'medium';
+    domElements.taskDueDate.value = task.dueDate || '';
+    clearFormError();
+    
+    if (domElements.submitTaskBtn) {
+        domElements.submitTaskBtn.innerHTML = '<span class="btn-icon">✓</span>Update Task';
+        domElements.submitTaskBtn.classList.add('btn-update');
+    }
+    
+    if (domElements.cancelEditBtn) {
+        domElements.cancelEditBtn.style.display = 'inline-flex';
+    }
+    
+    domElements.taskForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    domElements.taskTitle.focus();
+}
+
+function resetForm() {
+    domElements.taskForm.reset();
+    editingTaskId = null;
+    
+    if (domElements.submitTaskBtn) {
+        domElements.submitTaskBtn.innerHTML = '<span class="btn-icon">+</span>Add Task';
+        domElements.submitTaskBtn.classList.remove('btn-update');
+    }
+    
+    if (domElements.cancelEditBtn) {
+        domElements.cancelEditBtn.style.display = 'none';
+    }
+    
+    clearFormError();
+}
+
+function clearForm() {
+    domElements.taskForm.reset();
+    clearFormError();
 }
 
 
 // ===== EVENT BINDING =====
 
-/**
- * bindEvents()
- * 
- * Purpose: Attach event listeners to DOM elements
- * This centralizes all event binding in one function for easy maintenance
- * 
- * Current Events:
- * - Task form submission
- * - Search input
- * - Filter status dropdown
- * 
- * Returns: Nothing
- */
+function attachEditButtonListeners() {
+    document.querySelectorAll('.btn-edit').forEach((button) => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const taskId = parseInt(button.getAttribute('data-task-id'), 10);
+            editTask(taskId);
+        });
+    });
+    
+    document.querySelectorAll('.btn-delete').forEach((button) => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const taskId = parseInt(button.getAttribute('data-task-id'), 10);
+            deleteTask(taskId);
+        });
+    });
+    
+    document.querySelectorAll('.btn-complete').forEach((button) => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const taskId = parseInt(button.getAttribute('data-task-id'), 10);
+            completeTask(taskId);
+        });
+    });
+}
+
+function handleFormSubmit(event) {
+    event.preventDefault();
+    if (editingTaskId !== null) {
+        updateTask(editingTaskId);
+    } else {
+        addTask();
+    }
+}
+
 function bindEvents() {
-    // Bind the Add Task form submit event
+    // Form submit
     domElements.taskForm.addEventListener('submit', handleFormSubmit);
     
-    // Bind the search input event (fires as user types)
-    domElements.searchInput.addEventListener('input', handleSearchAndFilter);
+    // Cancel Edit button
+    if (domElements.cancelEditBtn) {
+        domElements.cancelEditBtn.addEventListener('click', resetForm);
+    }
     
-    // Bind the filter status change event (fires when dropdown changes)
-    domElements.filterStatus.addEventListener('change', handleSearchAndFilter);
+    // Search input (fires live as student types)
+    domElements.searchInput.addEventListener('input', renderTasks);
     
-    console.log('✓ Events Bound Successfully');
+    // Status filter dropdown
+    domElements.filterStatus.addEventListener('change', renderTasks);
+    
+    // Sorting dropdown
+    if (domElements.sortBy) {
+        domElements.sortBy.addEventListener('change', renderTasks);
+    }
+    
+    // Dark theme toggle
+    if (domElements.themeToggle) {
+        domElements.themeToggle.addEventListener('click', toggleTheme);
+    }
+    
+    // Refresh study tip button
+    if (domElements.refreshTipBtn) {
+        domElements.refreshTipBtn.addEventListener('click', fetchDailyStudyTip);
+    }
+    
+    console.log('✓ All DOM Events Bound Successfully');
 }
 
 
 // ===== APP INITIALIZATION =====
 
-/**
- * initializeApp()
- * 
- * Purpose: Initialize the entire application
- * 
- * Process:
- * 1. Cache all required DOM elements
- * 2. Bind event listeners
- * 3. Load tasks from the backend
- * 4. Display empty state (shown until tasks load)
- * 
- * Returns: Nothing
- */
 function initializeApp() {
-    console.log('🚀 Initializing TaskFlow...');
+    console.log('🚀 Initializing TaskFlow (CHO FA2 Edition)...');
     
-    // Step 1: Cache all DOM elements
+    // 1. Cache all elements
     cacheDOMElements();
     
-    // Step 2: Bind event listeners
+    // 2. Initialize theme from localStorage
+    initTheme();
+    
+    // 3. Initialize session actions from sessionStorage
+    const currentActions = sessionStorage.getItem('taskflow_actions') || '0';
+    if (domElements.sessionBadge) {
+        domElements.sessionBadge.textContent = `Session Actions: ${currentActions}`;
+    }
+    
+    // 4. Bind event listeners
     bindEvents();
     
-    // Step 3: Show empty state initially
+    // 5. Show initial empty state
     showEmptyState();
     
-    // Step 4: Load tasks from backend
+    // 6. Fetch tasks from backend
     loadTasks();
+    
+    // 7. Fetch daily study tip from API (demonstrating async/await & external API)
+    fetchDailyStudyTip();
     
     console.log('✓ TaskFlow Initialized Successfully');
 }
 
-
-// ===== APPLICATION STARTUP =====
-
-/**
- * Wait for the DOM to be fully loaded before running the application
- * 
- * The DOMContentLoaded event fires when the HTML document has been completely parsed
- * This ensures all DOM elements are available before we try to access them
- */
-document.addEventListener('DOMContentLoaded', () => {
-    initializeApp();
-});
-
-// Alternative method (runs when all resources are loaded):
-// window.addEventListener('load', () => {
-//     initializeApp();
-// });
-
-
-
-// ===== LOAD TASKS FROM BACKEND =====
-
-/**
- * loadTasks()
- * 
- * Purpose: Fetch tasks from the backend when the page loads
- * 
- * Process:
- * 1. Make a GET request to /api/tasks
- * 2. Convert the response to JSON
- * 3. Store the data in the tasks array
- * 4. Call renderTasks() to display them on the page
- * 5. Call updateStatistics() to update the stats
- * 6. If error: show message in console
- * 
- * Returns: Nothing
- */
-function loadTasks() {
-    // Send GET request to fetch all tasks from the backend
-    fetch("/api/tasks")
-        .then(response => response.json())
-        .then(data => {
-            // Store the fetched tasks in the global tasks array
-            tasks = data;
-            
-            // Render the tasks on the page
-            renderTasks();
-            
-            // Update the statistics cards
-            updateStatistics();
-            
-            console.log(`✓ Loaded ${tasks.length} task(s) from backend`);
-        })
-        .catch(error => {
-            // Show error message if the request fails
-            console.error("❌ Error loading tasks from backend:", error);
-            showEmptyState();
-        });
-}
+// Start application when DOM is ready
+document.addEventListener('DOMContentLoaded', initializeApp);

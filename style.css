@@ -1041,3 +1041,193 @@ a:hover {
         color-scheme: dark;
     }
 }
+
+/* ===== ENHANCEMENTS FOR CHO FA2 (STUDY TIPS, TOASTS, BADGES) ===== */
+
+/* Study Tip Card */
+.study-tip-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(59, 130, 246, 0.12) 100%);
+    border: 1px solid var(--color-primary-light);
+    border-left: 5px solid var(--color-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-md);
+    transition: all var(--transition-base);
+}
+
+[data-theme="dark"] .study-tip-card {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(30, 58, 138, 0.25) 100%);
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+.study-tip-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    flex: 1;
+}
+
+.study-tip-icon {
+    font-size: var(--font-size-2xl);
+    line-height: 1;
+}
+
+.study-tip-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-xs);
+}
+
+.study-tip-text {
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    margin: 0;
+    font-style: italic;
+}
+
+.study-tip-author {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
+.btn-tip-refresh {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--transition-fast);
+}
+
+.btn-tip-refresh:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+/* Secondary & Cancel Buttons */
+.btn-secondary {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+    background: var(--color-border);
+}
+
+.btn-cancel {
+    background: #ef4444;
+    color: white;
+    margin-left: var(--spacing-sm);
+}
+
+.btn-cancel:hover {
+    background: #dc2626;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    bottom: var(--spacing-xl);
+    right: var(--spacing-xl);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    max-width: 380px;
+}
+
+.toast {
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+    border-left: 4px solid var(--color-primary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    box-shadow: 0 4px 14px var(--color-shadow-md);
+    font-size: var(--font-size-sm);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast.toast-success {
+    border-left-color: var(--color-success);
+}
+
+.toast.toast-error {
+    border-left-color: var(--color-danger);
+}
+
+.toast.toast-info {
+    border-left-color: var(--color-info);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Header Action Pills & Demo Links */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.nav-pill {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+
+.nav-pill:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.nav-pill.active {
+    background: white;
+    color: var(--color-primary-dark);
+    font-weight: var(--font-weight-bold);
+}
+
+/* Session activity badge */
+.session-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-top: var(--spacing-xs);
+}
+
