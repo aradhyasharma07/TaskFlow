@@ -157,16 +157,30 @@ function updateSessionActions(actionName) {
 
 // ===== TOAST NOTIFICATION UTILITY =====
 
+// Track active toast timer to prevent duplicate/overlapping notifications
+let toastTimeoutId = null;
+
 /**
  * showToast(message, type)
  * 
  * Purpose: Display a temporary floating notification on the screen
+ * Enforces at most ONE clear notification at a time.
+ * 
  * Parameters:
  * - message (String): Notification text
  * - type (String): 'success' | 'error' | 'info'
  */
 function showToast(message, type = 'info') {
     if (!domElements.toastContainer) return;
+    
+    // Cancel any pending dismissal timer
+    if (toastTimeoutId) {
+        clearTimeout(toastTimeoutId);
+        toastTimeoutId = null;
+    }
+    
+    // Clear any existing toasts to prevent stacking or overlapping notifications
+    domElements.toastContainer.innerHTML = '';
     
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
@@ -178,12 +192,13 @@ function showToast(message, type = 'info') {
     toast.innerHTML = `<span>${icon} ${message}</span>`;
     domElements.toastContainer.appendChild(toast);
     
-    // Automatically remove after 3.5 seconds
-    setTimeout(() => {
+    // Automatically remove after 2.5 seconds
+    toastTimeoutId = setTimeout(() => {
         toast.style.opacity = '0';
-        toast.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3500);
+        toast.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => toast.remove(), 250);
+        toastTimeoutId = null;
+    }, 2500);
 }
 
 
@@ -227,7 +242,7 @@ async function fetchDailyStudyTip() {
         
         if (data && data.slip && data.slip.advice) {
             domElements.studyTipText.textContent = `"${data.slip.advice}"`;
-            domElements.studyTipAuthor.textContent = "— Advice Slip REST API (Online)";
+            domElements.studyTipAuthor.textContent = "— Daily Inspiration";
             console.log('✓ Successfully fetched study tip from external API');
         } else {
             throw new Error("Invalid response format from external API");
@@ -239,7 +254,7 @@ async function fetchDailyStudyTip() {
         // Pick a random fallback quote from our local array
         const randomTip = fallbackStudyTips[Math.floor(Math.random() * fallbackStudyTips.length)];
         domElements.studyTipText.textContent = `"${randomTip.text}"`;
-        domElements.studyTipAuthor.textContent = `— ${randomTip.author} (Offline Fallback)`;
+        domElements.studyTipAuthor.textContent = `— ${randomTip.author}`;
     } finally {
         // Re-enable button
         if (domElements.refreshTipBtn) domElements.refreshTipBtn.disabled = false;

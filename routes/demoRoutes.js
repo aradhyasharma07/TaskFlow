@@ -1,18 +1,20 @@
 // ==============================================================================
-// CHO FA2 Unified Dashboard - Node.js Demo Execution Endpoint
+// Node.js Demo Execution Endpoint (Allowlist-Only Execution)
 // File: routes/demoRoutes.js
 // 
-// PURPOSE:
-//   Allows the unified web dashboard to run Node.js fundamental scripts
-//   (Lectures 31-36) and display real execution output live on the page.
+// SECURITY:
+//   - Strictly allowlisted topic names.
+//   - Uses execFile (shell: false) with process.execPath to avoid shell injection.
+//   - Rejects any unauthorized or arbitrary command requests.
 // ==============================================================================
 
 const express = require('express');
 const router = express.Router();
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const path = require('path');
 
-const demos = {
+// Explicit allowlist of permissible demo scripts
+const ALLOWLISTED_DEMOS = {
     'event-loop': path.join(__dirname, '..', 'node-demos', '01_event_loop.js'),
     'streams': path.join(__dirname, '..', 'node-demos', '02_buffers_streams.js'),
     'emitter': path.join(__dirname, '..', 'node-demos', '03_event_emitter.js'),
@@ -21,17 +23,20 @@ const demos = {
 };
 
 router.get('/node/:topic', (req, res) => {
-    const scriptPath = demos[req.params.topic];
+    const topic = req.params.topic;
 
-    if (!scriptPath) {
+    // Strict validation: Only exact allowlist keys allowed
+    if (!Object.prototype.hasOwnProperty.call(ALLOWLISTED_DEMOS, topic)) {
         return res.status(404).json({
             success: false,
-            error: `Demo '${req.params.topic}' not found. Available: ${Object.keys(demos).join(', ')}`
+            error: `Unauthorized demo topic: '${topic}'. Permitted: ${Object.keys(ALLOWLISTED_DEMOS).join(', ')}`
         });
     }
 
-    // Execute the Node.js demo script safely
-    exec(`node "${scriptPath}"`, { timeout: 5000 }, (error, stdout, stderr) => {
+    const scriptPath = ALLOWLISTED_DEMOS[topic];
+
+    // Safely execute using execFile with no shell interpolation
+    execFile(process.execPath, [scriptPath], { timeout: 5000, shell: false }, (error, stdout, stderr) => {
         if (error) {
             return res.status(500).json({
                 success: false,
@@ -42,7 +47,7 @@ router.get('/node/:topic', (req, res) => {
 
         res.json({
             success: true,
-            topic: req.params.topic,
+            topic: topic,
             command: `node node-demos/${path.basename(scriptPath)}`,
             output: stdout
         });

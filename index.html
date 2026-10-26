@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow — Student Task Management System (CHO FA2 Unified)</title>
+    <title>TaskFlow — Student Task Management System</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,8 +13,7 @@
             <div class="header-content">
                 <div class="header-info">
                     <h1 class="app-title">TaskFlow</h1>
-                    <p class="app-description">Student Task Management System — Unified CHO FA2 Evaluation Platform (Lectures 25–48)</p>
-                    <div class="session-badge" id="sessionBadge">Session Actions: 0</div>
+                    <p class="app-description">Plan smarter. Study better.</p>
                 </div>
                 <div class="header-actions">
                     <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle Dark/Light Mode">
@@ -25,572 +24,174 @@
         </div>
     </header>
 
-    <!-- ===== UNIFIED TOPIC TABS NAVIGATION BAR ===== -->
-    <nav class="topic-tabs-bar" aria-label="CHO FA2 Topic Navigation">
-        <div class="container topic-tabs-container">
-            <button class="tab-btn active" data-tab="tab-tasks">📋 Task Manager</button>
-            <button class="tab-btn" data-tab="tab-js">⚡ Advanced JS (Lec 25–30)</button>
-            <button class="tab-btn" data-tab="tab-node">🟢 Node.js Core (Lec 31–36)</button>
-            <button class="tab-btn" data-tab="tab-express">🚂 Express & Auth (Lec 37–40)</button>
-            <button class="tab-btn" data-tab="tab-mongo">🍃 MongoDB (Lec 41)</button>
-            <button class="tab-btn" data-tab="tab-react">⚛️ React SPA (Lec 42–48)</button>
-        </div>
-    </nav>
-
     <!-- ===== MAIN CONTENT CONTAINER ===== -->
     <main class="main-content">
         <div class="container">
 
-            <!-- ================================================================= -->
-            <!-- TAB 1: TASK MANAGER (DEFAULT LANDING SECTION)                     -->
-            <!-- ================================================================= -->
-            <div class="tab-pane active" id="tab-tasks">
-
-                <!-- Daily Study Tip (External REST API + Fallback) -->
-                <section class="study-tip-card card" id="studyTipSection">
-                    <div class="study-tip-content">
-                        <span class="study-tip-icon">💡</span>
-                        <div>
-                            <div class="study-tip-title">Daily Study Tip & Motivation (External API)</div>
-                            <p class="study-tip-text" id="studyTipText">Loading study tip...</p>
-                            <p class="study-tip-author" id="studyTipAuthor">— Powered by Advice API & Local Fallback</p>
-                        </div>
+            <!-- Daily Study Tip Section -->
+            <section class="study-tip-card card" id="studyTipSection">
+                <div class="study-tip-content">
+                    <span class="study-tip-icon">💡</span>
+                    <div>
+                        <div class="study-tip-title">Daily Study Tip</div>
+                        <p class="study-tip-text" id="studyTipText">Loading study tip...</p>
+                        <p class="study-tip-author" id="studyTipAuthor">— Daily Inspiration</p>
                     </div>
-                    <button type="button" class="btn-tip-refresh" id="refreshTipBtn">
-                        🔄 New Tip
-                    </button>
-                </section>
+                </div>
+                <button type="button" class="btn-tip-refresh" id="refreshTipBtn">
+                    🔄 New Tip
+                </button>
+            </section>
+            
+            <!-- Task Form Section -->
+            <section class="form-section card" style="margin-top: var(--spacing-xl);">
+                <h2 class="section-title">Add New Task</h2>
                 
-                <!-- Task Form Section -->
-                <section class="form-section card" style="margin-top: var(--spacing-xl);">
-                    <h2 class="section-title">Add New Task</h2>
-                    
-                    <form class="task-form" id="taskForm">
+                <form class="task-form" id="taskForm">
+                    <div class="form-group">
+                        <label for="taskTitle" class="form-label">Task Title <span class="required">*</span></label>
+                        <input 
+                            type="text" 
+                            id="taskTitle" 
+                            class="form-input" 
+                            placeholder="Enter task title"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskDescription" class="form-label">Description</label>
+                        <textarea 
+                            id="taskDescription" 
+                            class="form-textarea" 
+                            placeholder="Add task description (optional)"
+                            rows="3"
+                        ></textarea>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group">
-                            <label for="taskTitle" class="form-label">Task Title <span class="required">*</span></label>
-                            <input 
-                                type="text" 
-                                id="taskTitle" 
-                                class="form-input" 
-                                placeholder="Enter task title"
-                                required
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <label for="taskDescription" class="form-label">Description</label>
-                            <textarea 
-                                id="taskDescription" 
-                                class="form-textarea" 
-                                placeholder="Add task description (optional)"
-                                rows="3"
-                            ></textarea>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="taskPriority" class="form-label">Priority</label>
-                                <select id="taskPriority" class="form-select">
-                                    <option value="low">Low</option>
-                                    <option value="medium" selected>Medium</option>
-                                    <option value="high">High</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="taskDueDate" class="form-label">Due Date</label>
-                                <input 
-                                    type="date" 
-                                    id="taskDueDate" 
-                                    class="form-input"
-                                >
-                            </div>
-                        </div>
-
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <button type="submit" class="btn btn-primary btn-large" id="submitTaskBtn">
-                                <span class="btn-icon">+</span>
-                                Add Task
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-cancel" id="cancelEditBtn" style="display: none;">
-                                ✕ Cancel
-                            </button>
-                        </div>
-                    </form>
-                </section>
-
-                <!-- Search & Filter Controls -->
-                <section class="controls-section card" style="margin-top: var(--spacing-xl);">
-                    <h2 class="section-title">Search & Filter</h2>
-                    
-                    <div class="controls-container">
-                        <div class="search-group">
-                            <input 
-                                type="text" 
-                                id="searchInput" 
-                                class="search-input" 
-                                placeholder="Search tasks..."
-                                aria-label="Search tasks"
-                            >
-                            <span class="search-icon">🔍</span>
-                        </div>
-
-                        <div class="select-group">
-                            <label for="filterStatus" class="select-label">Filter by Status</label>
-                            <select id="filterStatus" class="form-select">
-                                <option value="all">All Tasks</option>
-                                <option value="pending">Pending</option>
-                                <option value="completed">Completed</option>
+                            <label for="taskPriority" class="form-label">Priority</label>
+                            <select id="taskPriority" class="form-select">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
                             </select>
                         </div>
 
-                        <div class="select-group">
-                            <label for="sortBy" class="select-label">Sort by</label>
-                            <select id="sortBy" class="form-select">
-                                <option value="newest">Newest First</option>
-                                <option value="oldest">Oldest First</option>
-                                <option value="priority">Priority</option>
-                                <option value="alphabetical">A - Z</option>
-                            </select>
+                        <div class="form-group">
+                            <label for="taskDueDate" class="form-label">Due Date</label>
+                            <input 
+                                type="date" 
+                                id="taskDueDate" 
+                                class="form-input"
+                            >
                         </div>
                     </div>
-                </section>
 
-                <!-- Statistics Section -->
-                <section class="statistics-section" style="margin-top: var(--spacing-xl);">
-                    <h2 class="section-title">Task Statistics</h2>
-                    
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon stat-icon-total">📋</div>
-                            <div class="stat-content">
-                                <p class="stat-label">Total Tasks</p>
-                                <p class="stat-value" id="statTotal">0</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-icon stat-icon-completed">✓</div>
-                            <div class="stat-content">
-                                <p class="stat-label">Completed</p>
-                                <p class="stat-value" id="statCompleted">0</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-icon stat-icon-pending">⏳</div>
-                            <div class="stat-content">
-                                <p class="stat-label">Pending</p>
-                                <p class="stat-value" id="statPending">0</p>
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-icon stat-icon-percentage">📈</div>
-                            <div class="stat-content">
-                                <p class="stat-label">Completion %</p>
-                                <p class="stat-value" id="statPercentage">0%</p>
-                            </div>
-                        </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button type="submit" class="btn btn-primary btn-large" id="submitTaskBtn">
+                            <span class="btn-icon">+</span>
+                            Add Task
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-cancel" id="cancelEditBtn" style="display: none;">
+                            ✕ Cancel
+                        </button>
                     </div>
-                </section>
+                </form>
+            </section>
 
-                <!-- Task List Section -->
-                <section class="task-list-section card" style="margin-top: var(--spacing-xl);">
-                    <div class="section-header">
-                        <h2 class="section-title">Your Tasks</h2>
-                        <span class="task-count" id="taskCount">0 tasks</span>
+            <!-- Search & Filter Controls -->
+            <section class="controls-section card" style="margin-top: var(--spacing-xl);">
+                <h2 class="section-title">Search & Filter</h2>
+                
+                <div class="controls-container">
+                    <div class="search-group">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            class="search-input" 
+                            placeholder="Search tasks..."
+                            aria-label="Search tasks"
+                        >
+                        <span class="search-icon">🔍</span>
                     </div>
 
-                    <div id="taskListContainer" class="task-list-container">
-                        <div class="empty-state">
-                            <div class="empty-icon">📝</div>
-                            <h3 class="empty-title">No tasks available</h3>
-                            <p class="empty-message">Add your first task to get started</p>
-                        </div>
-                    </div>
-                </section>
-
-            </div>
-
-            <!-- ================================================================= -->
-            <!-- TAB 2: ADVANCED JAVASCRIPT & API INTEGRATION (LECTURES 25–30)      -->
-            <!-- ================================================================= -->
-            <div class="tab-pane" id="tab-js">
-                <div class="topic-banner">
-                    <h2>⚡ Lectures 25–30: Advanced JavaScript & API Integration</h2>
-                    <p>Interactive demonstrations of asynchronous JavaScript, Callbacks, Promise Chaining, Async/Await with Try/Catch, REST APIs, and Web Storage.</p>
-                </div>
-
-                <div class="demo-grid-2">
-                    <!-- Demo 1: Callbacks -->
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>1. Callbacks & Asynchronous Execution</h3>
-                            <span class="demo-pill">Lecture 25</span>
-                        </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            A callback function passed as an argument that executes when an asynchronous operation finishes.
-                        </p>
-                        <div style="margin: 12px 0;">
-                            <button class="btn btn-primary" onclick="runJsCallbackDemo()">▶ Run Callback Demo</button>
-                        </div>
-                        <div class="terminal-console" id="jsCallbackConsole">// Click Run to execute...</div>
+                    <div class="select-group">
+                        <label for="filterStatus" class="select-label">Filter by Status</label>
+                        <select id="filterStatus" class="form-select">
+                            <option value="all">All Tasks</option>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                        </select>
                     </div>
 
-                    <!-- Demo 2: Promises & Chaining -->
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>2. Promises & Promise Chaining</h3>
-                            <span class="demo-pill">Lecture 26–27</span>
-                        </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            Sequential `.then().then().catch()` chaining handling async data flow without callback hell.
-                        </p>
-                        <div style="margin: 12px 0; display:flex; gap:8px;">
-                            <button class="btn btn-primary" onclick="runJsPromiseDemo()">▶ Run Promise Chain</button>
-                            <button class="btn btn-cancel" onclick="runJsPromiseRejectDemo()">Simulate Reject</button>
-                        </div>
-                        <div class="terminal-console" id="jsPromiseConsole">// Click Run to execute...</div>
-                    </div>
-
-                    <!-- Demo 3: Async/Await & Try/Catch -->
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>3. Async / Await & Try / Catch</h3>
-                            <span class="demo-pill">Lecture 28</span>
-                        </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            Syntactic sugar over Promises enabling clean, synchronous-looking non-blocking code.
-                        </p>
-                        <div style="margin: 12px 0; display:flex; gap:8px;">
-                            <button class="btn btn-primary" onclick="runJsAsyncDemo()">▶ Run Async/Await</button>
-                            <button class="btn btn-cancel" onclick="runJsAsyncErrorDemo()">Simulate Error</button>
-                        </div>
-                        <div class="terminal-console" id="jsAsyncConsole">// Click Run to execute...</div>
-                    </div>
-
-                    <!-- Demo 4: Fetch API & REST -->
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>4. Fetch API & REST Endpoints</h3>
-                            <span class="demo-pill">Lecture 29</span>
-                        </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            HTTP GET requests via `fetch()` with HTTP status validation (`response.ok`).
-                        </p>
-                        <div style="margin: 12px 0; display:flex; gap:8px;">
-                            <button class="btn btn-primary" onclick="runJsFetchTasksDemo()">Fetch /api/tasks</button>
-                            <button class="btn btn-secondary" onclick="runJsFetchAdviceDemo()">Fetch Advice API</button>
-                        </div>
-                        <div class="terminal-console" id="jsFetchConsole">// Click a button to test...</div>
+                    <div class="select-group">
+                        <label for="sortBy" class="select-label">Sort by</label>
+                        <select id="sortBy" class="form-select">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="priority">Priority</option>
+                            <option value="alphabetical">A - Z</option>
+                        </select>
                     </div>
                 </div>
+            </section>
 
-                <!-- Demo 5: LocalStorage vs SessionStorage -->
-                <div class="demo-card" style="margin-top: var(--spacing-lg);">
-                    <div class="demo-card-header">
-                        <h3>5. LocalStorage vs SessionStorage Inspector</h3>
-                        <span class="demo-pill">Lecture 30</span>
-                    </div>
-                    <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                        `localStorage` persists permanently (used by TaskFlow's Dark Theme); `sessionStorage` expires when tab closes.
-                    </p>
-                    <div style="margin: 12px 0; display:flex; gap:8px;">
-                        <button class="btn btn-primary" onclick="runJsStorageDemo()">Inspect Browser Storage</button>
-                        <button class="btn btn-secondary" onclick="clearJsStorageDemo()">Clear Demo Storage Keys</button>
-                    </div>
-                    <div class="terminal-console" id="jsStorageConsole">// Click Inspect to view storage keys...</div>
-                </div>
-            </div>
-
-            <!-- ================================================================= -->
-            <!-- TAB 3: NODE.JS FUNDAMENTALS (LECTURES 31–36)                      -->
-            <!-- ================================================================= -->
-            <div class="tab-pane" id="tab-node">
-                <div class="topic-banner">
-                    <h2>🟢 Lectures 31–36: Node.js Architecture & Fundamentals</h2>
-                    <p>Demonstrations of the V8 Engine, Event Loop execution order, Buffers, Streams, EventEmitter, File System, Path module, and native HTTP servers.</p>
-                </div>
-
-                <div class="demo-grid-2">
-                    <!-- Node Demo 1: Event Loop -->
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>1. Event Loop & Microtasks</h3>
-                            <span class="demo-pill">Lec 31–32</span>
+            <!-- Statistics Section -->
+            <section class="statistics-section" style="margin-top: var(--spacing-xl);">
+                <h2 class="section-title">Task Statistics</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon stat-icon-total">📋</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Total Tasks</p>
+                            <p class="stat-value" id="statTotal">0</p>
                         </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            Execution priority: Synchronous &rarr; `process.nextTick` &rarr; `Promise.then` &rarr; `setTimeout` &rarr; `setImmediate`.
-                        </p>
-                        <div class="cmd-badge">Terminal: npm run demo:event-loop</div>
-                        <div style="margin: 8px 0;">
-                            <button class="btn btn-primary" onclick="runNodeScriptDemo('event-loop', 'nodeEventLoopConsole')">▶ Run Script in Browser</button>
-                        </div>
-                        <div class="terminal-console" id="nodeEventLoopConsole">// Click to execute node-demos/01_event_loop.js...</div>
                     </div>
 
-                    <!-- Node Demo 2: Buffers & Streams -->
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>2. Buffers & Stream Piping</h3>
-                            <span class="demo-pill">Lecture 33</span>
+                    <div class="stat-card">
+                        <div class="stat-icon stat-icon-completed">✓</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Completed</p>
+                            <p class="stat-value" id="statCompleted">0</p>
                         </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            Binary memory allocation with Buffers and chunked data streaming using `readStream.pipe(writeStream)`.
-                        </p>
-                        <div class="cmd-badge">Terminal: npm run demo:streams</div>
-                        <div style="margin: 8px 0;">
-                            <button class="btn btn-primary" onclick="runNodeScriptDemo('streams', 'nodeStreamsConsole')">▶ Run Script in Browser</button>
-                        </div>
-                        <div class="terminal-console" id="nodeStreamsConsole">// Click to execute node-demos/02_buffers_streams.js...</div>
                     </div>
 
-                    <!-- Node Demo 3: EventEmitter -->
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>3. EventEmitter & Custom Events</h3>
-                            <span class="demo-pill">Lecture 34</span>
+                    <div class="stat-card">
+                        <div class="stat-icon stat-icon-pending">⏳</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Pending</p>
+                            <p class="stat-value" id="statPending">0</p>
                         </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            Node.js Event-driven architecture with `.on()`, `.once()`, and custom event payloads.
-                        </p>
-                        <div class="cmd-badge">Terminal: npm run demo:emitter</div>
-                        <div style="margin: 8px 0;">
-                            <button class="btn btn-primary" onclick="runNodeScriptDemo('emitter', 'nodeEmitterConsole')">▶ Run Script in Browser</button>
-                        </div>
-                        <div class="terminal-console" id="nodeEmitterConsole">// Click to execute node-demos/03_event_emitter.js...</div>
                     </div>
 
-                    <!-- Node Demo 4: FS & Path -->
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>4. File System & Path Modules</h3>
-                            <span class="demo-pill">Lecture 33</span>
+                    <div class="stat-card">
+                        <div class="stat-icon stat-icon-percentage">📈</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Completion %</p>
+                            <p class="stat-value" id="statPercentage">0%</p>
                         </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            Cross-platform path resolution (`path.join`) and async non-blocking file operations (`fs.promises`).
-                        </p>
-                        <div class="cmd-badge">Terminal: npm run demo:fs</div>
-                        <div style="margin: 8px 0;">
-                            <button class="btn btn-primary" onclick="runNodeScriptDemo('fs', 'nodeFsConsole')">▶ Run Script in Browser</button>
-                        </div>
-                        <div class="terminal-console" id="nodeFsConsole">// Click to execute node-demos/04_fs_path.js...</div>
                     </div>
                 </div>
+            </section>
 
-                <!-- Node Demo 5: Native HTTP vs Express -->
-                <div class="demo-card" style="margin-top: var(--spacing-lg);">
-                    <div class="demo-card-header">
-                        <h3>5. Native Node.js HTTP Server (Without Express)</h3>
-                        <span class="demo-pill">Lecture 35</span>
-                    </div>
-                    <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                        Demonstrates how Node.js creates a web server using the built-in `http.createServer()` module with manual routing, status codes, and `res.end()`.
-                    </p>
-                    <div class="cmd-badge">Terminal Command: node node-demos/05_native_http_server.js (Runs on Port 4000)</div>
-                    <div style="margin: 10px 0;">
-                        <button class="btn btn-secondary" onclick="checkNativeHttpInfo()">View Native HTTP Implementation Notes</button>
-                    </div>
-                    <div class="terminal-console" id="nativeHttpConsole">// Click to inspect Native HTTP server details...</div>
-                </div>
-            </div>
-
-            <!-- ================================================================= -->
-            <!-- TAB 4: EXPRESS, MIDDLEWARE, REST & AUTH (LECTURES 37–40)          -->
-            <!-- ================================================================= -->
-            <div class="tab-pane" id="tab-express">
-                <div class="topic-banner">
-                    <h2>🚂 Lectures 37–40: Express Backend, Middleware, REST APIs & Security</h2>
-                    <p>Live testing interface for Express routing, body parsing, input validation middleware, JWT authentication with bcrypt, and Multer file attachments.</p>
+            <!-- Task List Section -->
+            <section class="task-list-section card" style="margin-top: var(--spacing-xl);">
+                <div class="section-header">
+                    <h2 class="section-title">Your Tasks</h2>
+                    <span class="task-count" id="taskCount">0 tasks</span>
                 </div>
 
-                <div class="demo-grid-2">
-                    <!-- Live Validation Tester -->
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>1. Input Validation Middleware</h3>
-                            <span class="demo-pill">Lecture 38</span>
-                        </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            Sends an invalid payload (empty title) to `POST /api/tasks` to verify the validation middleware returns a structured `400 Bad Request`.
-                        </p>
-                        <div style="margin: 12px 0;">
-                            <button class="btn btn-primary" onclick="testExpressValidation()">Test Validation Rejection (400)</button>
-                        </div>
-                        <div class="terminal-console" id="expressValidationConsole">// Click to test input validation...</div>
-                    </div>
-
-                    <!-- Centralized Error Handler -->
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>2. Centralized Error Handling</h3>
-                            <span class="demo-pill">Lecture 38</span>
-                        </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            Verifies that unhandled routes or exceptions hit the 4-parameter error middleware `(err, req, res, next)`.
-                        </p>
-                        <div style="margin: 12px 0;">
-                            <button class="btn btn-primary" onclick="testExpressErrorHandler()">Test Centralized 404/500 Handler</button>
-                        </div>
-                        <div class="terminal-console" id="expressErrorConsole">// Click to test centralized error handling...</div>
+                <div id="taskListContainer" class="task-list-container">
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3 class="empty-title">No tasks available</h3>
+                        <p class="empty-message">Add your first task to get started</p>
                     </div>
                 </div>
-
-                <!-- Live JWT & Bcrypt Authentication Console -->
-                <div class="demo-card" style="margin-top: var(--spacing-lg);">
-                    <div class="demo-card-header">
-                        <h3>3. JWT Authentication & Bcrypt Password Hashing</h3>
-                        <span class="demo-pill">Lectures 39–40</span>
-                    </div>
-                    <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                        Live interactive student authentication. Passwords are salted and hashed with `bcryptjs`. On login, a signed JWT token is issued and used to access protected endpoints.
-                    </p>
-                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin: 12px 0;">
-                        <input type="text" id="demoAuthName" class="form-input" placeholder="Student Name" value="College Student">
-                        <input type="email" id="demoAuthEmail" class="form-input" placeholder="Email" value="student@college.edu">
-                        <input type="password" id="demoAuthPass" class="form-input" placeholder="Password (min 6 chars)" value="secret123">
-                    </div>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 12px;">
-                        <button class="btn btn-primary" onclick="testAuthRegister()">1. Register (POST /api/auth/register)</button>
-                        <button class="btn btn-secondary" onclick="testAuthLogin()">2. Login (POST /api/auth/login)</button>
-                        <button class="btn btn-primary" style="background:#059669;" onclick="testAuthProtectedMe()">3. Access Protected Route (/api/auth/me)</button>
-                    </div>
-                    <div class="terminal-console" id="expressAuthConsole">// Auth status and JWT tokens will appear here...</div>
-                </div>
-
-                <!-- Multer Attachment Upload Tester -->
-                <div class="demo-card" style="margin-top: var(--spacing-lg);">
-                    <div class="demo-card-header">
-                        <h3>4. Multer File Upload with Strict Validation</h3>
-                        <span class="demo-pill">Lecture 40</span>
-                    </div>
-                    <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                        Uploads task assignment files (`.pdf`, `.png`, `.jpg`, `.docx`, `.txt`) with a 2MB size limit to `POST /api/tasks/:id/upload`.
-                    </p>
-                    <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin: 12px 0;">
-                        <input type="file" id="demoUploadFileInput" class="form-input" style="max-width:320px;" accept=".pdf,.png,.jpg,.jpeg,.docx,.txt">
-                        <button class="btn btn-primary" onclick="testMulterUpload()">Upload File via Multer</button>
-                    </div>
-                    <div class="terminal-console" id="expressUploadConsole">// Upload status and file URL will appear here...</div>
-                </div>
-            </div>
-
-            <!-- ================================================================= -->
-            <!-- TAB 5: MONGODB & MONGOOSE (LECTURE 41)                            -->
-            <!-- ================================================================= -->
-            <div class="tab-pane" id="tab-mongo">
-                <div class="topic-banner">
-                    <h2>🍃 Lecture 41: MongoDB, Mongoose, & Relationships</h2>
-                    <p>Live database status monitor, schema definitions with validation, populate() relationship inspection, and fail-safe dual-mode storage.</p>
-                </div>
-
-                <!-- Database Status Live Card -->
-                <div class="demo-card">
-                    <div class="demo-card-header">
-                        <h3>1. Real-Time Database Connection & Health</h3>
-                        <span class="demo-pill">Lecture 41</span>
-                    </div>
-                    <div style="margin: 12px 0;">
-                        <button class="btn btn-primary" onclick="checkLiveDbStatus()">🔄 Refresh Database Status</button>
-                    </div>
-                    <div class="terminal-console" id="mongoStatusConsole">// Click Refresh to query database connection...</div>
-                </div>
-
-                <!-- Mongoose Schema & populate() Inspector -->
-                <div class="demo-grid-2" style="margin-top: var(--spacing-lg);">
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>2. Mongoose Schemas & Validation Rules</h3>
-                            <span class="demo-pill">Lecture 41</span>
-                        </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            Inspecting `TaskSchema` and `UserSchema` with required fields, enum validation (`['low', 'medium', 'high']`), and bcrypt pre-save middleware.
-                        </p>
-                        <div style="margin: 10px 0;">
-                            <button class="btn btn-secondary" onclick="showMongooseSchemaCode()">View Schema Blueprints</button>
-                        </div>
-                        <div class="terminal-console" id="mongoSchemaConsole">// Click to inspect Mongoose schemas...</div>
-                    </div>
-
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>3. Relationship Demonstration: `populate()`</h3>
-                            <span class="demo-pill">Lecture 41</span>
-                        </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary);">
-                            `Task.find().populate('user', 'name email')` replaces the user's ObjectId with the linked student's profile (like a SQL JOIN).
-                        </p>
-                        <div style="margin: 10px 0;">
-                            <button class="btn btn-primary" onclick="testMongoosePopulate()">Query Tasks with populate('user')</button>
-                        </div>
-                        <div class="terminal-console" id="mongoPopulateConsole">// Click to test populate() query...</div>
-                    </div>
-                </div>
-
-                <!-- Dual Mode & Migration Guide -->
-                <div class="demo-card" style="margin-top: var(--spacing-lg);">
-                    <div class="demo-card-header">
-                        <h3>4. Dual-Mode Architecture & Data Migration</h3>
-                        <span class="demo-pill">Lecture 41</span>
-                    </div>
-                    <p style="font-size:0.9rem; color:var(--color-text-secondary); line-height:1.6;">
-                        <strong>Fail-Safe Dual-Mode:</strong> If MongoDB is offline, TaskFlow automatically falls back to <code>data/tasks.json</code> without crashing.<br>
-                        <strong>Migration Tool:</strong> To copy tasks from JSON into MongoDB, run:
-                    </p>
-                    <div class="cmd-badge">node scripts/migrateTasks.js</div>
-                </div>
-            </div>
-
-            <!-- ================================================================= -->
-            <!-- TAB 6: REACT CONCEPTS & EMBEDDED SPA (LECTURES 42–48)             -->
-            <!-- ================================================================= -->
-            <div class="tab-pane" id="tab-react">
-                <div class="topic-banner">
-                    <h2>⚛️ Lectures 42–48: React Single Page Application (SPA) & Hooks</h2>
-                    <p>Demonstrating Vite setup, JSX, reusable functional components, props, useState with multiple state variables, controlled forms, useEffect backend synchronization, and loading/error/empty states.</p>
-                </div>
-
-                <!-- React Concepts Matrix -->
-                <div class="demo-grid-2" style="margin-bottom: var(--spacing-xl);">
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>React Concepts Demonstrated</h3>
-                            <span class="demo-pill">Lectures 42–48</span>
-                        </div>
-                        <ul style="padding-left:20px; font-size:0.9rem; color:var(--color-text-secondary); line-height:1.8;">
-                            <li><strong>Lec 42:</strong> Vite Setup, SPA Architecture, and JSX Syntax (<code>frontend/vite.config.js</code>)</li>
-                            <li><strong>Lec 43:</strong> Functional Components & Reusability (<code>Header.jsx</code>, <code>StatsCard.jsx</code>)</li>
-                            <li><strong>Lec 44:</strong> Props & Parent-Child Communication (<code>StatsCard</code>, <code>TaskCard</code>)</li>
-                            <li><strong>Lec 45:</strong> <code>useState</code> Hook with Multiple State Variables (<code>App.jsx</code>, <code>TaskForm.jsx</code>)</li>
-                            <li><strong>Lec 46:</strong> Event Handling & Controlled Forms (<code>TaskForm.jsx</code>, <code>FilterControls.jsx</code>)</li>
-                            <li><strong>Lec 47:</strong> <code>useEffect</code> Hook & Backend Synchronization (<code>StudyTip.jsx</code>, <code>App.jsx</code>)</li>
-                            <li><strong>Lec 48:</strong> Loading, Error, and Empty State Handling (<code>App.jsx</code>)</li>
-                        </ul>
-                    </div>
-
-                    <div class="demo-card">
-                        <div class="demo-card-header">
-                            <h3>React CLI Commands</h3>
-                            <span class="demo-pill">Vite & NPM</span>
-                        </div>
-                        <p style="font-size:0.9rem; color:var(--color-text-secondary); line-height:1.6;">
-                            The React frontend is pre-built into <code>frontend/dist</code> and embedded live below. You can also run the Vite dev server with Hot Module Reloading:
-                        </p>
-                        <div class="cmd-badge">npm run dev:react (Opens http://localhost:5173)</div><br>
-                        <div class="cmd-badge">npm run build:react (Compiles production build)</div>
-                    </div>
-                </div>
-
-                <!-- Embedded Live React SPA Frame -->
-                <div class="react-embed-card card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                        <h3 class="section-title" style="margin:0;">⚛️ Embedded Live React Application</h3>
-                        <span style="font-size:0.85rem; color:var(--color-text-secondary);">Directly interacting with Express backend at <code>/api/tasks</code></span>
-                    </div>
-                    <iframe src="/app/" class="embedded-react-frame" title="Embedded React Single Page Application"></iframe>
-                </div>
-            </div>
+            </section>
 
         </div>
     </main>
@@ -601,12 +202,12 @@
     <!-- ===== FOOTER ===== -->
     <footer class="footer">
         <div class="container">
-            <div class="footer-content" style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px;">
-                <p class="footer-text" style="margin:0;">
-                    <strong>TaskFlow</strong> — Student Task Management System | CHO FA2 Evaluation Platform
+            <div class="footer-content" style="text-align: center;">
+                <p class="footer-text" style="font-weight: 700; margin-bottom: 6px;">
+                    TaskFlow — Student Task Management System
                 </p>
-                <p class="footer-credits" style="margin:0;">
-                    Project Team: <strong>Aradhya Sharma</strong> (Lead), <strong>Aaryan</strong>, <strong>Gunit</strong> | Single Unified URL: <code>http://localhost:3000/</code>
+                <p class="footer-text" style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin: 0;">
+                    Developed by Aradhya Sharma, Aaryan and Gunit
                 </p>
             </div>
         </div>
