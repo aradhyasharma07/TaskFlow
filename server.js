@@ -22,6 +22,7 @@ const { errorHandler } = require('./middleware/errorHandler');
 const taskRoutes = require('./routes/taskRoutes');
 const authRoutes = require('./routes/authRoutes');
 const tipRoutes = require('./routes/tipRoutes');
+const demoRoutes = require('./routes/demoRoutes');
 
 // Initialize Express Application
 const app = express();
@@ -82,6 +83,9 @@ app.use('/api/tasks', taskRoutes);
 
 // Lecture 29: Study tips endpoints (/api/tips/daily)
 app.use('/api/tips', tipRoutes);
+
+// Lectures 31-36: Node.js fundamental script runner endpoint (/api/demos/node/:topic)
+app.use('/api/demos', demoRoutes);
 
 
 // ===== CENTRALIZED ERROR-HANDLING MIDDLEWARE (Lecture 38) =====

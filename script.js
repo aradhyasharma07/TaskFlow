@@ -840,6 +840,29 @@ function bindEvents() {
         domElements.refreshTipBtn.addEventListener('click', fetchDailyStudyTip);
     }
     
+    // Topic Navigation Tabs (Unified Single Website Dashboard)
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.getAttribute('data-tab');
+            
+            // Update active state on tab buttons
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Update active state on tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            const activePane = document.getElementById(targetTab);
+            if (activePane) {
+                activePane.classList.add('active');
+            }
+            
+            // Re-render tasks if user switched back to task manager
+            if (targetTab === 'tab-tasks') {
+                renderTasks();
+            }
+        });
+    });
+    
     console.log('✓ All DOM Events Bound Successfully');
 }
 
@@ -878,3 +901,375 @@ function initializeApp() {
 
 // Start application when DOM is ready
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+
+// ==============================================================================
+// UNIFIED DASHBOARD INTERACTIVE DEMONSTRATIONS (CHO FA2 LECTURES 25-48)
+// ==============================================================================
+
+// Helper for logging to dashboard consoles
+function logConsole(elementId, text, clear = false) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    if (clear || el.textContent.startsWith('//')) {
+        el.textContent = text;
+    } else {
+        el.textContent += '\n' + text;
+    }
+    el.scrollTop = el.scrollHeight;
+}
+
+// Global JWT token stored in memory during authentication tests
+let demoAuthToken = null;
+
+
+// ===== TAB 2: ADVANCED JAVASCRIPT DEMOS (LECTURES 25-30) =====
+
+function runJsCallbackDemo() {
+    logConsole('jsCallbackConsole', '-> [Step 1] Initiating asynchronous callback demonstration...', true);
+    
+    function simulateAsyncData(id, callback) {
+        logConsole('jsCallbackConsole', `-> [Step 2] Queuing task #${id} with setTimeout(600ms)...`);
+        setTimeout(() => {
+            const data = { taskId: id, title: "Review Event Loop Microtasks", completed: true };
+            callback(null, data);
+        }, 600);
+    }
+    
+    simulateAsyncData(101, (err, task) => {
+        if (err) {
+            logConsole('jsCallbackConsole', '✗ Error: ' + err);
+            return;
+        }
+        logConsole('jsCallbackConsole', `✓ [Step 4] Callback executed! Non-blocking I/O finished.`);
+        logConsole('jsCallbackConsole', `Task Payload: ${JSON.stringify(task)}`);
+    });
+    
+    logConsole('jsCallbackConsole', '-> [Step 3] Synchronous code continued immediately without waiting!');
+}
+
+function runJsPromiseDemo() {
+    logConsole('jsPromiseConsole', '-> [Step 1] Creating new Promise for task #201...', true);
+    
+    function fetchPromise(id) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                if (id <= 0) reject(new Error("Invalid ID: Must be positive"));
+                else resolve({ id, title: "Prepare Viva Explanations", priority: "high" });
+            }, 500);
+        });
+    }
+    
+    fetchPromise(201)
+        .then(task => {
+            logConsole('jsPromiseConsole', `✓ [Step 2] Promise 1 resolved: "${task.title}"`);
+            logConsole('jsPromiseConsole', '-> [Step 3] Chaining Promise 2 (marking complete)...');
+            task.completed = true;
+            return task; // Passes to next .then()
+        })
+        .then(updatedTask => {
+            logConsole('jsPromiseConsole', `✓ [Step 4] Promise 2 resolved: completed = ${updatedTask.completed}`);
+            return "Promise chain resolved successfully!";
+        })
+        .then(summary => {
+            logConsole('jsPromiseConsole', `✓ [Step 5] ${summary}`);
+        })
+        .catch(err => {
+            logConsole('jsPromiseConsole', `✗ Rejected: ${err.message}`);
+        });
+}
+
+function runJsPromiseRejectDemo() {
+    logConsole('jsPromiseConsole', '-> Requesting invalid Task ID (-5) to trigger Promise reject()...', true);
+    new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Task -5 not found in system")), 400);
+    })
+    .catch(err => {
+        logConsole('jsPromiseConsole', `✓ .catch() handler caught rejected Promise: "${err.message}"`);
+    });
+}
+
+async function runJsAsyncDemo() {
+    logConsole('jsAsyncConsole', '-> [Step 1] Calling async function...', true);
+    try {
+        logConsole('jsAsyncConsole', '-> [Step 2] Awaiting simulated asynchronous task fetch (500ms)...');
+        const task = await new Promise(resolve => {
+            setTimeout(() => resolve({ id: 301, title: "Async/Await Integration", status: "success" }), 500);
+        });
+        logConsole('jsAsyncConsole', `✓ [Step 3] Await resolved! Received task: "${task.title}"`);
+        logConsole('jsAsyncConsole', `✓ [Step 4] Code executed synchronously in appearance, non-blocking in reality.`);
+    } catch (err) {
+        logConsole('jsAsyncConsole', `✗ Caught error: ${err.message}`);
+    }
+}
+
+async function runJsAsyncErrorDemo() {
+    logConsole('jsAsyncConsole', '-> Testing try/catch error handling in async/await...', true);
+    try {
+        await new Promise((_, reject) => setTimeout(() => reject(new Error("Simulated network timeout (504)")), 300));
+    } catch (err) {
+        logConsole('jsAsyncConsole', `✓ Error successfully caught by try/catch block:`);
+        logConsole('jsAsyncConsole', `  Error Message: "${err.message}"`);
+    }
+}
+
+async function runJsFetchTasksDemo() {
+    logConsole('jsFetchConsole', '-> Sending GET /api/tasks to Express server...', true);
+    try {
+        const res = await fetch('/api/tasks');
+        logConsole('jsFetchConsole', `Response Status: ${res.status} (${res.statusText}) | ok: ${res.ok}`);
+        const data = await res.json();
+        logConsole('jsFetchConsole', `✓ Loaded ${data.length} task(s) from backend.`);
+        if (data.length > 0) {
+            logConsole('jsFetchConsole', `First task: ${JSON.stringify(data[0], null, 2)}`);
+        }
+    } catch (err) {
+        logConsole('jsFetchConsole', `✗ Fetch error: ${err.message}`);
+    }
+}
+
+async function runJsFetchAdviceDemo() {
+    logConsole('jsFetchConsole', '-> Sending request to external Advice Slip REST API...', true);
+    try {
+        const res = await fetch(`https://api.adviceslip.com/advice?t=${Date.now()}`);
+        if (!res.ok) throw new Error("HTTP error " + res.status);
+        const data = await res.json();
+        logConsole('jsFetchConsole', `✓ External Advice: "${data.slip.advice}" (ID: ${data.slip.id})`);
+    } catch (err) {
+        logConsole('jsFetchConsole', `⚠️ External API unreachable: ${err.message}. Local fallback active.`);
+    }
+}
+
+function runJsStorageDemo() {
+    const time = new Date().toLocaleTimeString();
+    localStorage.setItem('demo_last_inspected', time);
+    sessionStorage.setItem('demo_tab_id', Math.floor(Math.random() * 10000));
+    
+    const theme = localStorage.getItem('taskflow_theme') || 'light';
+    const actions = sessionStorage.getItem('taskflow_actions') || '0';
+    const last = localStorage.getItem('demo_last_inspected');
+    const tabId = sessionStorage.getItem('demo_tab_id');
+    
+    logConsole('jsStorageConsole', '=== LOCALSTORAGE (Permanent across restarts) ===', true);
+    logConsole('jsStorageConsole', `• taskflow_theme: "${theme}"`);
+    logConsole('jsStorageConsole', `• demo_last_inspected: "${last}"`);
+    logConsole('jsStorageConsole', '\n=== SESSIONSTORAGE (Cleared on tab close) ===');
+    logConsole('jsStorageConsole', `• taskflow_actions: "${actions}"`);
+    logConsole('jsStorageConsole', `• demo_tab_id: "${tabId}"`);
+}
+
+function clearJsStorageDemo() {
+    localStorage.removeItem('demo_last_inspected');
+    sessionStorage.removeItem('demo_tab_id');
+    logConsole('jsStorageConsole', '✓ Cleared demo storage keys.', true);
+}
+
+
+// ===== TAB 3: NODE.JS FUNDAMENTALS DEMOS (LECTURES 31-36) =====
+
+async function runNodeScriptDemo(topic, consoleId) {
+    logConsole(consoleId, `-> Running node-demos script '${topic}' via /api/demos/node/${topic}...`, true);
+    try {
+        const res = await fetch(`/api/demos/node/${topic}`);
+        if (!res.ok) {
+            throw new Error(`Failed to execute script. Status: ${res.status}`);
+        }
+        const data = await res.json();
+        logConsole(consoleId, `Command: ${data.command}\n\n${data.output}`);
+    } catch (err) {
+        logConsole(consoleId, `❌ Execution error: ${err.message}\nYou can also run this in your terminal:\n  npm run demo:${topic === 'streams' ? 'streams' : topic === 'emitter' ? 'emitter' : topic === 'fs' ? 'fs' : topic === 'modules' ? 'modules' : 'event-loop'}`);
+    }
+}
+
+function checkNativeHttpInfo() {
+    logConsole('nativeHttpConsole', '=== Native Node.js HTTP Module (Lecture 35) ===', true);
+    logConsole('nativeHttpConsole', 'File: node-demos/05_native_http_server.js');
+    logConsole('nativeHttpConsole', 'Key Concepts:\n' +
+        '1. Uses built-in `http.createServer((req, res) => {...})` without Express.\n' +
+        '2. Inspects raw `req.url` and `req.method` to perform manual routing.\n' +
+        '3. Sets headers using `res.setHeader()` and status codes using `res.writeHead(200)`.\n' +
+        '4. Writes payload and closes response stream with `res.end(JSON.stringify(data))`.\n' +
+        '\nTo launch in a separate terminal: node node-demos/05_native_http_server.js');
+}
+
+
+// ===== TAB 4: EXPRESS, REST & AUTH DEMOS (LECTURES 37-40) =====
+
+async function testExpressValidation() {
+    logConsole('expressValidationConsole', '-> Testing input validation: POST /api/tasks with empty title...', true);
+    try {
+        const res = await fetch('/api/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: "   ", priority: "low" })
+        });
+        const data = await res.json();
+        logConsole('expressValidationConsole', `HTTP Status: ${res.status} (${res.statusText})`);
+        logConsole('expressValidationConsole', `Server Response:\n${JSON.stringify(data, null, 2)}`);
+        logConsole('expressValidationConsole', '✓ Input validation middleware intercepted empty title and returned 400 Bad Request!');
+    } catch (err) {
+        logConsole('expressValidationConsole', `✗ Error: ${err.message}`);
+    }
+}
+
+async function testExpressErrorHandler() {
+    logConsole('expressErrorConsole', '-> Requesting non-existent route /api/invalid-endpoint-test-404...', true);
+    try {
+        const res = await fetch('/api/invalid-endpoint-test-404');
+        const data = await res.json();
+        logConsole('expressErrorConsole', `HTTP Status: ${res.status}`);
+        logConsole('expressErrorConsole', `Centralized Error Handler Response:\n${JSON.stringify(data, null, 2)}`);
+        logConsole('expressErrorConsole', '✓ Centralized 4-parameter error middleware caught error and returned structured JSON!');
+    } catch (err) {
+        logConsole('expressErrorConsole', `✗ Error: ${err.message}`);
+    }
+}
+
+async function testAuthRegister() {
+    const name = document.getElementById('demoAuthName').value;
+    const email = document.getElementById('demoAuthEmail').value;
+    const password = document.getElementById('demoAuthPass').value;
+    
+    logConsole('expressAuthConsole', `-> Registering student "${email}" (POST /api/auth/register)...`, true);
+    try {
+        const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        if (data.token) {
+            demoAuthToken = data.token;
+            logConsole('expressAuthConsole', `✓ Registration successful!\nPassword hashed using bcryptjs.\nGenerated JWT Token:\n${data.token}`);
+        } else {
+            logConsole('expressAuthConsole', `Response: ${JSON.stringify(data, null, 2)}`);
+        }
+    } catch (err) {
+        logConsole('expressAuthConsole', `✗ Registration error: ${err.message}`);
+    }
+}
+
+async function testAuthLogin() {
+    const email = document.getElementById('demoAuthEmail').value;
+    const password = document.getElementById('demoAuthPass').value;
+    
+    logConsole('expressAuthConsole', `-> Logging in "${email}" (POST /api/auth/login)...`, true);
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (data.token) {
+            demoAuthToken = data.token;
+            logConsole('expressAuthConsole', `✓ Login successful!\nBcrypt verified password hash.\nSigned JWT Token:\n${data.token}`);
+        } else {
+            logConsole('expressAuthConsole', `Response: ${JSON.stringify(data, null, 2)}`);
+        }
+    } catch (err) {
+        logConsole('expressAuthConsole', `✗ Login error: ${err.message}`);
+    }
+}
+
+async function testAuthProtectedMe() {
+    if (!demoAuthToken) {
+        logConsole('expressAuthConsole', '⚠️ No JWT token found in memory. Please Register or Login first!', true);
+        return;
+    }
+    logConsole('expressAuthConsole', '-> Accessing protected route GET /api/auth/me with Bearer token...', true);
+    try {
+        const res = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${demoAuthToken}` }
+        });
+        const data = await res.json();
+        logConsole('expressAuthConsole', `HTTP Status: ${res.status}`);
+        logConsole('expressAuthConsole', `Protected Profile Decoded by verifyToken Middleware:\n${JSON.stringify(data, null, 2)}`);
+    } catch (err) {
+        logConsole('expressAuthConsole', `✗ Error: ${err.message}`);
+    }
+}
+
+async function testMulterUpload() {
+    const fileInput = document.getElementById('demoUploadFileInput');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        logConsole('expressUploadConsole', '⚠️ Please select a file (.pdf, .png, .jpg, .docx, .txt) first!', true);
+        return;
+    }
+    const file = fileInput.files[0];
+    const targetTaskId = tasks.length > 0 ? tasks[0].id : 1;
+    
+    logConsole('expressUploadConsole', `-> Uploading file "${file.name}" (${file.size} bytes) to /api/tasks/${targetTaskId}/upload...`, true);
+    
+    const formData = new FormData();
+    formData.append('attachment', file);
+    
+    try {
+        const res = await fetch(`/api/tasks/${targetTaskId}/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (res.ok) {
+            logConsole('expressUploadConsole', `✓ File uploaded successfully via Multer!\nSaved Filename: ${data.file}\nFile URL: ${data.url}\n\nTask updated with attachment reference.`);
+            loadTasks(); // Refresh tasks list
+        } else {
+            logConsole('expressUploadConsole', `✗ Upload rejected (${res.status}): ${data.error}`);
+        }
+    } catch (err) {
+        logConsole('expressUploadConsole', `✗ Upload error: ${err.message}`);
+    }
+}
+
+
+// ===== TAB 5: MONGODB & MONGOOSE DEMOS (LECTURE 41) =====
+
+async function checkLiveDbStatus() {
+    logConsole('mongoStatusConsole', '-> Querying GET /api/status for database health...', true);
+    try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        logConsole('mongoStatusConsole', `Server Uptime: ${data.uptimeSeconds} seconds`);
+        logConsole('mongoStatusConsole', `Database Connected: ${data.database.connected}`);
+        logConsole('mongoStatusConsole', `Active Provider: ${data.database.provider}`);
+        logConsole('mongoStatusConsole', `Fail-Safe Dual-Mode: ${data.database.connected ? 'Primary MongoDB active' : 'Fallback data/tasks.json active'}`);
+    } catch (err) {
+        logConsole('mongoStatusConsole', `✗ Status error: ${err.message}`);
+    }
+}
+
+function showMongooseSchemaCode() {
+    logConsole('mongoSchemaConsole', '=== Task Mongoose Schema (models/Task.js) ===', true);
+    logConsole('mongoSchemaConsole',
+`const taskSchema = new mongoose.Schema({
+  id: { type: Number, default: () => Date.now() },
+  title: { type: String, required: true, trim: true, minlength: 2 },
+  description: { type: String, default: '' },
+  priority: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
+  dueDate: { type: String, default: '' },
+  completed: { type: Boolean, default: false },
+  attachment: { type: String, default: null },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } // populate() reference
+});`);
+}
+
+async function testMongoosePopulate() {
+    logConsole('mongoPopulateConsole', '-> Querying GET /api/tasks to inspect populate("user")...', true);
+    try {
+        const res = await fetch('/api/tasks');
+        const data = await res.json();
+        const taskWithUser = data.find(t => t.user);
+        if (taskWithUser) {
+            logConsole('mongoPopulateConsole', `✓ Found Task populated with User document:`);
+            logConsole('mongoPopulateConsole', JSON.stringify(taskWithUser, null, 2));
+        } else {
+            logConsole('mongoPopulateConsole', `Tasks fetched (${data.length} tasks). If you create a task while authenticated, the user ObjectId is automatically populated into: { name, email }.`);
+            if (data.length > 0) {
+                logConsole('mongoPopulateConsole', `Sample task: ${JSON.stringify(data[0], null, 2)}`);
+            }
+        }
+    } catch (err) {
+        logConsole('mongoPopulateConsole', `✗ Error: ${err.message}`);
+    }
+}
+

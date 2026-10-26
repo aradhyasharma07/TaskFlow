@@ -322,6 +322,15 @@ async function runE2ETests() {
         record("11. Static Frontend Availability (Vanilla '/', React '/app/', Demos)", false, e.message);
     }
 
+    // --- 12. NODE.JS SCRIPT RUNNER API ---
+    try {
+        const res = await makeRequest({ hostname: 'localhost', port: 3000, path: '/api/demos/node/event-loop', method: 'GET' });
+        const ok = res.status === 200 && res.data.success === true && res.data.output.includes("Event Loop Execution Order");
+        record("12. Node.js Script Runner API (/api/demos/node/event-loop)", ok, `Topic: ${res.data?.topic}`);
+    } catch (e) {
+        record("12. Node.js Script Runner API (/api/demos/node/event-loop)", false, e.message);
+    }
+
     console.log("\n=================================================================");
     console.log(`TOTAL TESTS: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);
     console.log("=================================================================\n");

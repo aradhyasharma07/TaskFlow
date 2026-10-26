@@ -1,7 +1,9 @@
 # TaskFlow — Student Task Management System
-### Comprehensive Full-Stack Web Application for CHO FA2 Evaluation & Viva
+### Comprehensive Full-Stack Web Application for CHO FA2 Evaluation & Viva (Lectures 25–48)
 
-TaskFlow is a modern, student-centric task management platform engineered to organize academic assignments, track productivity statistics, and demonstrate all core topics from **CHO Lectures 25 through 48** (Advanced JavaScript, Node.js fundamentals, Express backend, MongoDB/Mongoose, and React with Vite).
+TaskFlow is a modern, student-centric task management platform engineered to organize academic assignments, track productivity statistics, and provide **ONE Unified Evaluation Platform** demonstrating all core topics from **CHO Lectures 25 through 48** (Advanced JavaScript, Node.js fundamentals, Express backend, MongoDB/Mongoose, and React with Vite).
+
+> **Single Evaluation URL**: Open **`http://localhost:3000/`** — this is the **only URL you need to open** during your evaluation. Every lecture topic, interactive demonstration, and the embedded React SPA is accessible directly from this single unified dashboard.
 
 ---
 
@@ -13,107 +15,33 @@ TaskFlow is a modern, student-centric task management platform engineered to org
 
 ---
 
-## 🚀 Key Features
+## 🎯 The Unified Dashboard Layout (`http://localhost:3000/`)
 
-1. **Dual Frontend Interfaces**:
-   - **Vanilla Frontend** (`http://localhost:3000`): Pure HTML5, CSS3, and modern ES6+ JavaScript (`script.js`).
-   - **React SPA** (`http://localhost:3000/app` or `http://localhost:5173`): Fast Vite-powered Single Page Application featuring functional components, hooks (`useState`, `useEffect`), controlled forms, and reactive statistics.
-2. **Task Management (Full CRUD)**:
-   - Create, Read, Update, Delete, and Toggle Completion for academic tasks.
-   - Priority levels (`Low`, `Medium`, `High`) with distinct visual badges.
-   - Due date tracking and formatted date displays.
-3. **Live Search, Filtering & Sorting**:
-   - Real-time case-insensitive search by task title or description.
-   - Filter by status (`All`, `Pending`, `Completed`).
-   - Sort by `Newest First`, `Oldest First`, `Priority`, or `Alphabetical (A–Z)`.
-4. **Real-Time Academic Statistics**:
-   - Total tasks, Completed count, Pending count, and completion percentage progress bar.
-5. **Study Tips API Integration (External & Local Fallback)**:
-   - Fetches motivational and productivity tips from external REST APIs using `async/await` and `fetch()`.
-   - Built-in offline fallback tips if internet connectivity is unavailable.
-6. **Browser Storage (LocalStorage & SessionStorage)**:
-   - Persistent Dark / Light theme toggle stored in `localStorage`.
-   - Session activity counter tracking user modifications in `sessionStorage`.
-7. **Secure Express Backend**:
-   - JWT-based authentication (`/api/auth/register`, `/api/auth/login`, `/api/auth/me`).
-   - Password hashing using `bcryptjs`.
-   - Input validation and centralized 4-parameter error-handling middleware.
-   - Restrictive file attachments upload via `multer` (PDF, JPG, PNG, DOCX; max 2MB).
-8. **Dual-Mode Persistence (MongoDB + JSON Fallback)**:
-   - Primary: Connects to MongoDB via Mongoose with Schema validation and `populate('user')`.
-   - Fail-Safe: Automatically falls back to `data/tasks.json` if MongoDB is not running, ensuring the application runs smoothly on any machine without errors.
+The website organizes the entire CHO FA2 syllabus into **6 intuitive tabs** located directly under the header:
 
----
-
-## 📂 Project Structure
-
-```text
-TaskFlow-main/
-├── .env.example                # Safe environment variables template
-├── .env                        # Local environment configuration
-├── config/
-│   └── db.js                   # Mongoose connection with dual-mode fallback
-├── data/
-│   └── tasks.json              # Local JSON persistence storage
-├── docs/
-│   ├── CHO_SYLLABUS_MAPPING.md # Exact mapping of Lec 25-48 to codebase
-│   ├── VIVA_NOTES.md           # 25+ viva questions with concise answers
-│   ├── PROJECT_WORKFLOW.md     # Architecture diagrams & sequence flows
-│   └── TaskFlow_API.postman_collection.json # Postman API test collection
-├── frontend/                   # React Single Page Application (Vite)
-│   ├── src/
-│   │   ├── components/         # Header, TaskForm, TaskCard, StatsCard, etc.
-│   │   ├── App.jsx             # React root SPA component
-│   │   ├── main.jsx            # React DOM mounting
-│   │   └── index.css           # Component styles matching Vanilla theme
-│   ├── index.html              # React entry HTML
-│   ├── vite.config.js          # Vite config with /api proxy
-│   └── package.json            # React dependencies
-├── middleware/
-│   ├── auth.js                 # JWT verification & token generation
-│   ├── errorHandler.js         # Centralized Express error handler
-│   ├── upload.js               # Multer file upload configuration
-│   └── validate.js             # Request body validation middleware
-├── models/
-│   ├── Task.js                 # Mongoose Task schema with user reference
-│   └── User.js                 # Mongoose User schema with bcrypt pre-save
-├── node-demos/                 # Runnable Node.js fundamental demos (Lec 31-36)
-│   ├── 01_event_loop.js        # Event Loop, Call Stack, Microtask queue
-│   ├── 02_buffers_streams.js   # Buffer allocation, Streams, and Piping
-│   ├── 03_event_emitter.js     # Custom EventEmitter class and listeners
-│   ├── 04_fs_path.js           # Async fs.promises and path utilities
-│   ├── 05_native_http_server.js# Raw HTTP server without Express
-│   ├── 06_commonjs_helper.js   # CommonJS require/module.exports
-│   └── 06_es_module.mjs        # ES Modules import/export
-├── routes/
-│   ├── authRoutes.js           # Register, Login, Protected Me
-│   ├── taskRoutes.js           # Task CRUD & Multer attachment routes
-│   └── tipRoutes.js            # Study tips REST endpoint
-├── scripts/
-│   ├── migrateTasks.js         # Tool to migrate JSON tasks into MongoDB
-│   └── testBackend.js          # 10-point automated backend test suite
-├── demo-advanced-js.html       # Interactive Viva Playground (Lec 25-30)
-├── index.html                  # Vanilla frontend entry point
-├── package.json                # Main project scripts & dependencies
-├── script.js                   # Vanilla frontend logic
-├── server.js                   # Express application entry point
-└── style.css                   # Complete responsive CSS styling
-```
+| Tab Name | Syllabus Coverage | Interactive Demonstrations Included |
+|---|---|---|
+| **📋 Task Manager** *(Default)* | Core System | Task CRUD, Priority Badges, Due Dates, Live Search, Status Filter, Sorting, Statistics Progress, and Daily Study Tip with external API & local fallback. |
+| **⚡ Advanced JS** | Lectures 25–30 | Live browser demos: Callbacks, Promise Chaining (`.then().catch()`), Async/Await with `try/catch`, Fetch API with status checking (`response.ok`), and LocalStorage vs SessionStorage inspector. |
+| **🟢 Node.js Core** | Lectures 31–36 | In-browser script execution & terminal reference for Event Loop microtasks (`process.nextTick`, `Promise`), Buffers & Stream piping, EventEmitter, File System (`fs.promises`) & `path`, and native HTTP server without Express. |
+| **🚂 Express & Auth** | Lectures 37–40 | Live Express laboratory: Input validation rejection (400), Centralized Error Handler (4-parameter middleware), JWT Student Registration & Login (bcrypt hashing), Protected Profile query (`/api/auth/me`), and Multer file attachment upload. |
+| **🍃 MongoDB** | Lecture 41 | Real-time database connection health monitor (`/api/status`), Mongoose Schema code inspector (`Task` & `User`), live `populate('user')` relationship query, and fail-safe dual-mode storage fallback. |
+| **⚛️ React SPA** | Lectures 42–48 | Seamlessly embedded live React 19 Single Page Application interacting with the Express backend, accompanied by explanations of JSX, Functional Components, Props, `useState`, Controlled Forms, `useEffect`, and Loading/Error/Empty states. |
 
 ---
 
 ## 🛠️ Installation & Getting Started
 
 ### 1. Prerequisites
-- **Node.js** (v18 or higher recommended)
+- **Node.js** (v18 or higher recommended; verified on Node v26)
 - **NPM** (v9 or higher)
-- *(Optional)* **MongoDB** (If MongoDB is not installed, TaskFlow runs automatically using `data/tasks.json` fallback!)
+- *(Optional)* **MongoDB** (If MongoDB is running, TaskFlow automatically uses it; if not installed or offline, TaskFlow automatically falls back to `data/tasks.json` so the app never crashes!)
 
-### 2. Install Dependencies
+### 2. Install Dependencies & Build React
 Run from the root directory:
 ```bash
 npm install
-cd frontend && npm install && npm run build && cd ..
+npm run build:react
 ```
 
 ### 3. Configure Environment Variables
@@ -121,56 +49,79 @@ Copy `.env.example` to `.env`:
 ```bash
 cp .env.example .env
 ```
-Default `.env` values are pre-configured for local development.
+*(Default `.env` is pre-configured with secure environment variable names and local database URIs. `.env` is ignored by Git and never committed).*
 
-### 4. Start the Application
-Start the backend server:
+### 4. Start the Unified Server
 ```bash
 npm start
 ```
-*(Or use `npm run dev` to start with Nodemon auto-reload)*
+*(Or run `npm run dev` for Nodemon auto-reloading)*
+
+Open your browser to: **`http://localhost:3000/`**
 
 ---
 
-## 🌐 How to Access the Features
+## 🧪 Automated Verification & Testing
 
-| URL | Description |
-|---|---|
-| `http://localhost:3000` | **Vanilla Frontend** (Original pure JS UI) |
-| `http://localhost:3000/app` | **React SPA Frontend** (Served via Express) |
-| `http://localhost:3000/demo-advanced-js.html` | **Interactive Viva Demos** (Lec 25–30) |
-| `http://localhost:3000/api/status` | **System Health & DB Mode Inspection** |
-| `http://localhost:3000/api/tasks` | **REST API Tasks Endpoint** |
-| `http://localhost:5173` | **React Vite Dev Server** (`npm run dev:react`) |
-
----
-
-## 📜 Available NPM Scripts
+TaskFlow includes two automated test suites ensuring zero regressions:
 
 ```bash
-# Start backend server
-npm start
-
-# Start backend in development mode with Nodemon
-npm run dev
-
-# Run automated backend test suite (10/10 tests)
+# 1. Run Core Backend Test Suite (10 Tests)
 node scripts/testBackend.js
 
-# Build React frontend
-npm run build:react
+# 2. Run Full E2E & React Integration Test Suite (12 Tests)
+node scripts/testFullE2E.js
+```
 
-# Start React Vite dev server
+### All Tests Verified:
+- `GET /api/status` — Server UP, Database connection reported.
+- `GET /api/tasks` — Task array retrieved.
+- `POST /api/tasks` validation — Empty title rejected with `400 Bad Request`.
+- `POST /api/tasks` creation — Created task with server-assigned ID.
+- `PUT /api/tasks/:id` update — Task fields updated and completion toggled.
+- `DELETE /api/tasks/:id` — Task removed.
+- `POST /api/tasks/:id/upload` — Multer uploaded attachment file.
+- Static attachment serving — `/uploads/:filename` served with `HTTP 200`.
+- `POST /api/auth/register` — Bcrypt hashed password & generated JWT.
+- `POST /api/auth/login` — Password verified & returned JWT.
+- `GET /api/auth/me` — Protected route verified Bearer token.
+- `GET /api/tips/daily` — Academic study tip returned.
+- `GET /api/demos/node/event-loop` — Node.js script executed and output returned.
+- Static routes — `/`, `/app/` returned `HTTP 200`.
+
+---
+
+## 💻 Terminal Demonstrations for Viva
+
+Every topic that can be demonstrated from the terminal has dedicated scripts in `package.json`:
+
+```bash
+# Lectures 31-32: Event Loop, Call Stack, Microtasks & Timers
+npm run demo:event-loop
+
+# Lecture 33: Buffers & Stream Piping
+npm run demo:streams
+
+# Lecture 34: EventEmitter with Custom Event Listeners
+npm run demo:emitter
+
+# Lecture 33: Async File System (fs.promises) & Path Module
+npm run demo:fs
+
+# Lecture 35: Native Node.js HTTP Server on Port 4000 (without Express)
+npm run demo:http
+
+# Lecture 32: ES Modules (import/export) Demonstration
+npm run demo:modules
+
+# Run All Node.js Demos Sequentially
+npm run demo:all
+
+# Lecture 41: MongoDB Migration Tool (Copies data/tasks.json to MongoDB)
+node scripts/migrateTasks.js
+
+# Lectures 42-48: Start Independent React Vite Dev Server (Port 5173)
 npm run dev:react
-
-# Run Node.js fundamental demonstrations (Lectures 31-36)
-npm run demo:all          # Run all demos sequentially
-npm run demo:event-loop   # Lecture 31-32 Event Loop execution order
-npm run demo:streams      # Lecture 33 Buffers & Streams piping
-npm run demo:emitter      # Lecture 34 EventEmitter demo
-npm run demo:fs           # Lecture 33 File System & Path
-npm run demo:http         # Lecture 35 Native HTTP server without Express
-npm run demo:modules      # Lecture 32 ES Modules demonstration
 ```
 
 ---
@@ -181,21 +132,21 @@ npm run demo:modules      # Lecture 32 ES Modules demonstration
 |---|---|---|---|
 | `GET` | `/api/status` | Server health and database connection status | No |
 | `GET` | `/api/tasks` | Fetch all tasks (populates User if MongoDB) | No |
-| `GET` | `/api/tasks/:id` | Fetch a single task by ID | No |
-| `POST` | `/api/tasks` | Create a new task (validated) | Optional (links User) |
-| `PUT` | `/api/tasks/:id` | Update an existing task | No |
-| `DELETE` | `/api/tasks/:id` | Delete a task | No |
+| `GET` | `/api/tasks/:id` | Fetch single task by ID | No |
+| `POST` | `/api/tasks` | Create task (validated via middleware) | Optional (links User) |
+| `PUT` | `/api/tasks/:id` | Update task fields / toggle completion | No |
+| `DELETE` | `/api/tasks/:id` | Delete task by ID | No |
 | `POST` | `/api/tasks/:id/upload` | Upload attachment file via Multer | No |
-| `POST` | `/api/auth/register` | Register student (hashes password) | No |
-| `POST` | `/api/auth/login` | Login student (returns JWT) | No |
-| `GET` | `/api/auth/me` | Get authenticated student profile | **Yes (Bearer JWT)** |
-| `GET` | `/api/tips/daily` | Get a random academic study tip | No |
+| `POST` | `/api/auth/register` | Register student (hashes password with bcrypt) | No |
+| `POST` | `/api/auth/login` | Login student (returns signed JWT token) | No |
+| `GET` | `/api/auth/me` | Protected route: Decodes JWT payload | **Yes (`Bearer <token>`)** |
+| `GET` | `/api/tips/daily` | Get random study tip with category | No |
+| `GET` | `/api/demos/node/:topic` | Execute Node.js fundamental script & return output | No |
 
 ---
 
 ## 📚 Viva Preparation Documentation
 
-Make sure to review the accompanying documentation prepared in the `docs/` folder:
-- [CHO Syllabus Mapping](docs/CHO_SYLLABUS_MAPPING.md) — Exact lecture-by-lecture checklist from Lec 25 to 48.
-- [Viva Notes & Top Questions](docs/VIVA_NOTES.md) — 25+ common viva questions with beginner-friendly model answers.
-- [Project Workflow & Architecture](docs/PROJECT_WORKFLOW.md) — Visual Mermaid diagrams of requests and JWT flows.
+- [CHO Syllabus Mapping](docs/CHO_SYLLABUS_MAPPING.md) — Lecture-by-lecture checklist from Lec 25 to 48.
+- [Viva Notes & Top Questions](docs/VIVA_NOTES.md) — 25+ beginner-friendly viva questions and model answers.
+- [Project Workflow & Architecture](docs/PROJECT_WORKFLOW.md) — Visual Mermaid sequence diagrams of HTTP requests, Error handling, and JWT authentication flows.
