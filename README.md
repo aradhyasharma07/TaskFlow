@@ -3,8 +3,6 @@
 
 TaskFlow is a modern, student-centric task management platform engineered to organize academic assignments, track productivity statistics, and provide **ONE Unified Evaluation Platform** demonstrating all core topics from **CHO Lectures 25 through 48** (Advanced JavaScript, Node.js fundamentals, Express backend, MongoDB/Mongoose, and React with Vite).
 
-> **Single Evaluation URL**: Open **`http://localhost:3000/`** — this is the **only URL you need to open** during your evaluation. Every lecture topic, interactive demonstration, and the embedded React SPA is accessible directly from this single unified dashboard.
-
 ---
 
 ## 👥 Team Members
