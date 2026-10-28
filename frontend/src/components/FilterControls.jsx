@@ -1,6 +1,9 @@
+    // AARYAN KI DOCUMENT 
+
+
 // ==============================================================================
 // Lecture 46: Controlled Inputs & Parent-Child Communication
-// File: frontend/src/components/FilterControls.jsx
+
 // ==============================================================================
 
 import React from 'react';

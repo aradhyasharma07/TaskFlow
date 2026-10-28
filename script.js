@@ -1,3 +1,7 @@
+    // AARYAN KI DOCUMENT 
+
+
+
 // ===================================================================
 // TaskFlow - JavaScript Foundation (Upgraded for CHO FA2 Evaluation)
 // Student Task Management System
@@ -369,7 +373,7 @@ function clearFormError() {
 }
 
 
-// ===== SEARCH, FILTER, AND SORTING =====
+// ===== SEARCH, FILTER AND SORTING =====
 
 /**
  * getFilteredTasks()
@@ -398,6 +402,7 @@ function getFilteredTasks() {
     });
     
     // 2. Sort the filtered array
+
     filtered.sort((a, b) => {
         if (sortBy === 'newest') {
             // Newest ID first (or newest date)
@@ -422,7 +427,7 @@ function getFilteredTasks() {
 }
 
 
-// ===== RENDERING TASKS =====
+// RENDERING TASKS
 
 /**
  * renderTasks()
