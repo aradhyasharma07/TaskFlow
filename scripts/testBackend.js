@@ -1,10 +1,7 @@
-// ==============================================================================
-// Automated Backend Verification Test Suite
-// File: scripts/testBackend.js
-// 
-// HOW TO RUN:
-//   node scripts/testBackend.js
-// ==============================================================================
+//GUNIT KI DOCUMENTS
+
+
+
 
 const http = require('http');
 

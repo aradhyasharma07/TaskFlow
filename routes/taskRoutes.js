@@ -1,14 +1,7 @@
-// ==============================================================================
-// Lectures 37-41: RESTful API Task Routes (CRUD, Multer Upload, & MongoDB)
-// File: routes/taskRoutes.js
-// 
-// TOPICS DEMONSTRATED:
-//   - REST API principles & CRUD endpoints (GET, POST, PUT, DELETE)
-//   - Input validation middleware (Lecture 38)
-//   - Multer file upload handling for attachments (Lecture 40)
-//   - Mongoose CRUD & populate('user') (Lecture 41)
-//   - Safe dual-mode fallback to data/tasks.json if MongoDB is offline
-// ==============================================================================
+//GUNIT KI DOCUMENTS
+
+
+
 
 const express = require('express');
 const router = express.Router();

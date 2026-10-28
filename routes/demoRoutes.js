@@ -1,12 +1,7 @@
-// ==============================================================================
-// Node.js Demo Execution Endpoint (Allowlist-Only Execution)
-// File: routes/demoRoutes.js
-// 
-// SECURITY:
-//   - Strictly allowlisted topic names.
-//   - Uses execFile (shell: false) with process.execPath to avoid shell injection.
-//   - Rejects any unauthorized or arbitrary command requests.
-// ==============================================================================
+//GUNIT KI DOCUMENTS
+
+
+
 
 const express = require('express');
 const router = express.Router();

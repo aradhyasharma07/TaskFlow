@@ -1,14 +1,10 @@
+//GUNIT KI DOCUMENTS
+
+
+
 // ==============================================================================
-// TaskFlow - Backend Express Server (Upgraded for CHO FA2 Evaluation)
+// TaskFlow - Backend Express Server
 // Student Task Management System
-// 
-// Topics Demonstrated:
-// - Lecture 36: Environment variables (dotenv) & npm scripts
-// - Lecture 37: Express server setup, routes, and req/res lifecycle
-// - Lecture 38: Middleware, body parsing, input validation, centralized error handling
-// - Lecture 39: REST API principles, CRUD operations, JWT auth & bcrypt password hashing
-// - Lecture 40: Protected routes & Multer file uploads
-// - Lecture 41: MongoDB / Mongoose connection with dual-mode JSON fallback
 // ==============================================================================
 
 require('dotenv').config();
