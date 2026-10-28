@@ -142,9 +142,3 @@ npm run dev:react
 | `GET` | `/api/demos/node/:topic` | Execute Node.js fundamental script & return output | No |
 
 ---
-
-## 📚 Viva Preparation Documentation
-
-- [CHO Syllabus Mapping](docs/CHO_SYLLABUS_MAPPING.md) — Lecture-by-lecture checklist from Lec 25 to 48.
-- [Viva Notes & Top Questions](docs/VIVA_NOTES.md) — 25+ beginner-friendly viva questions and model answers.
-- [Project Workflow & Architecture](docs/PROJECT_WORKFLOW.md) — Visual Mermaid sequence diagrams of HTTP requests, Error handling, and JWT authentication flows.
